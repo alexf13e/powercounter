@@ -1,0 +1,177 @@
+
+body
+{
+    font-family: arial;
+    font-size: 13px;
+    margin-top: 0;
+}
+
+input
+{
+    width: 5em;
+}
+
+table
+{
+    width: 100%;
+    border-spacing: 0;
+}
+
+tr
+{
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+}
+
+thead
+{
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    position: sticky;
+    inset-block-start: 0;
+    top: 8px;
+    background-color: white;
+}
+
+th
+{
+    text-align: center;
+    border-bottom: solid black 1px;
+}
+
+td
+{
+    text-align: center;
+}
+
+table td + td
+{
+    border-left: solid black 1px;
+}
+
+table th + th
+{
+    border-left: solid black 1px;
+}
+
+tr:hover
+{
+    background-color: lightgray;
+    color: black;
+}
+
+#dvLeft
+{
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset-block-start: 0;
+    top: 8px;
+    max-width: 18%;
+    height: 90%;
+    align-self: flex-start;
+}
+
+#dvLeft > a
+{
+    margin-bottom: 10px;
+}
+
+#dvFiles
+{
+    margin-top: 30px;
+    overflow: auto;
+}
+
+#dvFiles > p
+{
+    text-decoration: underline;
+    cursor: pointer;
+    margin: 5px 50% 0 0;
+    width: fit-content;
+}
+
+#dvCSV
+{
+    position: absolute;
+    width: 70%;
+    left: 20%;
+    top: 8px;
+}
+
+#dvHideTop
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 8px;
+    width: 100%;
+    background-color: white;
+    z-index: 100;
+}
+
+.saveFileShown
+{
+    color: blue;
+}
+
+.saveFileHidden
+{
+    color: white;
+    pointer-events: none;
+}
+
+.selectedcsv
+{
+    font-weight: bold;
+}
+
+.minmaxRow
+{
+    border-bottom: solid black 1px;
+}
+
+.minmaxRow > td
+{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.minmaxRow > td > p
+{
+    margin: 0;
+    font-weight: bold;
+}
+
+.minmaxRow > td > p:first-child
+{
+    color: blue
+}
+
+.minmaxRow > td > p:nth-child(2)
+{
+    color: red;
+}
+
+.trNight
+{
+    background-color: #202080;
+    color: yellow;
+}
+
+.trMin
+{
+    background-color: lightblue;
+    color: black;
+}
+
+.trMax
+{
+    background-color: orangered;
+    color: black;
+}
+
+.sticky
+{
+    position: sticky;
+}

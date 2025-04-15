@@ -1,0 +1,5 @@
+logs/*
+logs.txt
+.env/
+.lgd-nfy0
+run.sh
