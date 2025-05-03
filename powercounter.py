@@ -1,10 +1,12 @@
 
-from datetime import date, datetime, timedelta
-#from gpiozero import DigitalInputDevice as Pin
+from datetime import datetime, timedelta
 import RPi.GPIO as GPIO
 import time
 import threading
 import os
+
+import config
+
 
 def count_led(_channel):
     global count
@@ -14,14 +16,14 @@ def count_led(_channel):
 
 def record_count(value):
     global timeperiod_start
-    filename = f"/home/pi/powercounter/logs/{timeperiod_start.strftime('%Y-%m-%d')}.csv"
+    filename = f"{config.ROOT_DIR}/logs/{timeperiod_start.strftime('%Y-%m-%d')}.csv"
     timeperiod_end = datetime.now()
     record_interval = (timeperiod_end - timeperiod_start).seconds
     display_period = f"{timeperiod_start.strftime('%H:%M:%S')} - {timeperiod_end.strftime('%H:%M:%S')}"
     timeperiod_start = timeperiod_end
 
-    k_watt_hours = value / 4000
-    extrapolated_hourly_usage = k_watt_hours * 3600 / record_interval
+    k_watt_hours = value / config.COUNTS_PER_KWH
+    extrapolated_hourly_usage = k_watt_hours * 3600 / record_interval # equivalent to average kW rate of that minute
     cumulative = k_watt_hours
 
     file_exists = os.path.isfile(filename)
@@ -38,10 +40,10 @@ def record_count(value):
         f.write(f"{display_period},{value},{k_watt_hours},{extrapolated_hourly_usage},{cumulative}\n")
 
     if not file_exists:
-        # file just been created, so update log list file
-        loglist = os.listdir("/home/pi/powercounter/logs")
+        # file has just been created, so update log list file
+        loglist = os.listdir(f"{config.ROOT_DIR}/logs")
         loglist.sort(reverse=True) # sort newest first
-        with open("/home/pi/powercounter/logs.txt", "w") as f:
+        with open(f"{config.ROOT_DIR}/logindex.txt", "w") as f:
             for log in loglist:
                 f.write(f"{log}\n")
 
@@ -59,12 +61,8 @@ GPIO.setwarnings(False)
 GPIO.setup(PIN_LED_READ, GPIO.IN)
 GPIO.add_event_detect(PIN_LED_READ, GPIO.RISING, count_led, 10)
 
-#pin_led_read = Pin(17)
-#pin_led_read.when_activated = count_led
-
 count = 0
 count_lock = threading.Lock()
-
 timeperiod_start = datetime.now()
 
 try:

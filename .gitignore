@@ -1,6 +1,8 @@
 logs/*
-logs.txt
 .env/
+__pycache__/
+*.csv
+logs.txt
 .lgd-nfy0
 run.sh
-monthtotals.csv
+api_secrets.py

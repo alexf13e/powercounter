@@ -1,12 +1,13 @@
 
 import os
-import time
 import datetime
 
+import config
+
 days_to_keep_logs = 365
-deletion_date = datetime.date.today() - datetime.timedelta(days=days_to_keep_logs)
-logdir = "/home/pi/powercounter/logs"
+logdir = f"{config.ROOT_DIR}/logs"
 loglist = os.listdir(logdir)
+deletion_date = datetime.date.today() - datetime.timedelta(days=days_to_keep_logs)
 
 for log in loglist:
     logdatestring = os.path.splitext(log)[0]
