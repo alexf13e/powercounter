@@ -99,16 +99,47 @@ if not file_exists:
     with open(charge_times_dir, "w") as f:
         f.write("start,end\n")
 
+
+# load data for cheap daytime charges
+cheap_day_periods = {}
+with open(f"{config.ROOT_DIR}/chargetimes.csv", "r") as f:
+    lines = f.readlines()
+    for i in range(1, len(lines)): # skip first line with headers
+        line = lines[i]
+        start_time, end_time = line.split(",")
+        start_date = start_time.split("_")[0]
+        if start_time in cheap_day_periods:
+            cheap_day_periods[start_date].append((start_time, end_time))
+        else:
+            cheap_day_periods[start_date] = [(start_time, end_time)]
+
+
 with open(charge_times_dir, "a") as f:
     # see long winded note about UTC and daylight savings
     for dispatch in dispatches:
         dt1 = datetime.datetime.fromisoformat(dispatch["start"])
         dt2 = datetime.datetime.fromisoformat(dispatch["end"])
+
         if not is_night_rate(dt1):
             if is_dst(dt1):
                 dt1 += datetime.timedelta(hours=1)
                 dt2 += datetime.timedelta(hours=1)
-            f.write(f"{dt1.strftime('%Y-%m-%d_%H:%M:%S')},{dt2.strftime('%Y-%m-%d_%H:%M:%S')}\n")
+
+        #check dispatch hasn't already been saved
+        str_dt1 = dt1.strftime('%Y-%m-%d_%H:%M:%S')
+        str_dt2 = dt2.strftime('%Y-%m-%d_%H:%M:%S')
+        start_date = str_dt1.split("_")[0]
+        dispatch_present = False
+        if start_date in cheap_day_periods:
+            for (start_time, end_time) in cheap_day_periods[start_date]:
+                if start_time == str_dt1:
+                    dispatch_present = True
+                    break
+        
+        if dispatch_present:
+            continue
+        
+        f.write(f"{str_dt1},{str_dt2}\n")
 
 
 # long-winded note about UTC and daylight savings:
