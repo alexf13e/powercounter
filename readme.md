@@ -27,7 +27,7 @@ API_KEY = "a_really_long_series_of_letters_and_numbers"
 @reboot sleep 30; /home/pi/powercounter/.env/bin/python /home/pi/powercounter/powercounter.py
 5 0 * * * /home/pi/powercounter/.env/bin/python /home/pi/powercounter/clearoldlogs.py
 5 0 * * 1 /home/pi/powercounter/.env/bin/python /home/pi/powercounter/updatemonthtotals.py
-0 10,22 * * * /home/pi/powercounter/.env/bin/python /home/pi/powercounter/findchargetimes.py
+0 0/4 * * * /home/pi/powercounter/.env/bin/python /home/pi/powercounter/findchargetimes.py
 ```
 
 `sudo crontab -e`
