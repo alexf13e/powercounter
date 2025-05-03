@@ -6,8 +6,12 @@ let inpUnitCostDay = document.getElementById("inpUnitCostDay");
 let inpUnitCostNight = document.getElementById("inpUnitCostNight");
 let inpStandingCharge = document.getElementById("inpStandingCharge");
 let inpEnableNightRate = document.getElementById("inpEnableNightRate");
+let inpNightRateStart = document.getElementById("inpNightRateStart");
+let inpNightRateEnd = document.getElementById("inpNightRateEnd");
 
 let currentJSONRows = [];
+let currentFileDate;
+let chargeTimes = {};
 
 const PERIOD_COST_TITLE = "period cost pence";
 const PROJECTED_COST_TITLE = "1h projected cost £";
@@ -16,6 +20,58 @@ const CUMULATIVE_COST_TITLE = "cumulative cost £";
 let reloadFileTimeout;
 
 window.addEventListener("load", async () => {
+    loadLocalStorage();
+    let logsPresent = await createLogList();
+    if (!logsPresent) return;
+
+    await loadChargeTimes();
+
+    //automatically show the most recent file
+    await reloadMostRecentFile();
+});
+
+inpUnitCostDay.addEventListener("change", () => {
+    if (inpUnitCostDay.value == "") inpUnitCostDay.value = 0;
+    updateJSONCosts();
+    displayJSON();
+    setLocalStorage("pencePerKWHDay", inpUnitCostDay.value);
+});
+
+inpUnitCostNight.addEventListener("change", () => {
+    if (inpUnitCostNight.value == "") inpUnitCostNight.value = 0;
+    updateJSONCosts();
+    displayJSON();
+    setLocalStorage("pencePerKWHDay", inpUnitCostNight.value);
+});
+
+inpStandingCharge.addEventListener("change", () => {
+    if (inpStandingCharge.value == "") inpStandingCharge.value = 0;
+    updateJSONCosts();
+    displayJSON();
+    setLocalStorage("penceStandingCharge", inpStandingCharge.value);
+});
+
+inpEnableNightRate.addEventListener("change", () => {
+    updateJSONCosts();
+    displayJSON();
+    setLocalStorage("enableNightRate", inpEnableNightRate.checked);
+});
+
+inpNightRateStart.addEventListener("change", () => {
+    updateJSONCosts();
+    displayJSON();
+    setLocalStorage("nightRateStart", inpNightRateStart.value);
+});
+
+inpNightRateEnd.addEventListener("change", () => {
+    updateJSONCosts();
+    displayJSON();
+    setLocalStorage("nightRateEnd", inpNightRateEnd.value);
+});
+
+
+function loadLocalStorage()
+{
     //load saved input values
     let pencePerKWHDay = getLocalStorage("pencePerKWHDay");
     if (pencePerKWHDay)
@@ -41,13 +97,27 @@ window.addEventListener("load", async () => {
         inpEnableNightRate.checked = false;
     }
 
+    let nightRateStart = getLocalStorage("nightRateStart");
+    if (nightRateStart)
+    {
+        inpNightRateStart.value = nightRateStart;
+    }
+
+    let nightRateEnd = getLocalStorage("nightRateEnd");
+    if (nightRateEnd)
+    {
+        inpNightRateEnd.value = nightRateEnd;
+    }
+}
+
+async function createLogList()
+{
     //get a list of existing log files
     let response = await fetch("./logs.txt", {cache: "no-store"});
     if (!response.ok)
     {
-        console.log(response);
         alert("failed to find available logs");
-        return;
+        return false;
     }
 
     let text = await response.text();
@@ -59,7 +129,7 @@ window.addEventListener("load", async () => {
         let p = document.createElement("p");
         p.innerHTML = "No log files available";
         dvCSV.appendChild(p);
-        return;
+        return false;
     }
 
     //create log file list at side of page
@@ -90,37 +160,46 @@ window.addEventListener("load", async () => {
         dvFiles.appendChild(p);
     }
 
-    //automatically show the most recent file
-    await reloadMostRecentFile();
-});
+    return true;
+}
 
-inpUnitCostDay.addEventListener("change", () => {
-    if (inpUnitCostDay.value == "") inpUnitCostDay.value = 0;
-    updateJSONCosts();
-    displayJSON();
-    setLocalStorage("pencePerKWHDay", inpUnitCostDay.value);
-});
+async function loadChargeTimes()
+{
+    let response = await fetch("./chargetimes.csv", {cache: "no-store"});
+    if (!response.ok)
+    {
+        return false;
+    }
 
+    let text = await response.text();
+    text = text.trim();
 
-inpUnitCostNight.addEventListener("change", () => {
-    if (inpUnitCostNight.value == "") inpUnitCostNight.value = 0;
-    updateJSONCosts();
-    displayJSON();
-    setLocalStorage("pencePerKWHDay", inpUnitCostDayNight.value);
-});
+    //create json indexed by start date of charge period (only ever in 30 minute chunks, so doesn't run through
+    //multiple days)
+    let lines = text.split("\n");
+    for (let i = 1; i < lines.length; i++)
+    {
+        let line = lines[i];
+        if (line == "") continue;
 
-inpStandingCharge.addEventListener("change", () => {
-    if (inpStandingCharge.value == "") inpStandingCharge.value = 0;
-    updateJSONCosts();
-    displayJSON();
-    setLocalStorage("penceStandingCharge", inpStandingCharge.value);
-});
+        let parts = line.split(",");
+        let chargeTime = {
+            start: parts[0],
+            end: parts[1]
+        };
 
-inpEnableNightRate.addEventListener("change", () => {
-    updateJSONCosts();
-    displayJSON();
-    setLocalStorage("enableNightRate", inpEnableNightRate.checked);
-});
+        let start_date = parts[0].split("T")[0];
+
+        if (start_date in chargeTimes)
+        {
+            chargeTimes[start_date].push(chargeTime);
+        }
+        else
+        {
+            chargeTimes[start_date] = [chargeTime];
+        }
+    }
+}
 
 async function reloadMostRecentFile()
 {
@@ -131,9 +210,12 @@ async function reloadMostRecentFile()
     updateDownloadLink(recent.innerHTML);
     highlightSelectedFile(recent);
 
+    currentFileDate = recent.innerHTML.split(".")[0];
+
     //set file to be automatically reloaded each minute
+    //wait until 5 seconds past the minute to give time for file to be updated and saved
     let d = new Date();
-    let timeUntilNextMinute = (60 - d.getSeconds() + 5) * 1000; //wait until 5 seconds past the minute to give time for file to be updated and saved
+    let timeUntilNextMinute = (60 - d.getSeconds() + 5) * 1000;
     reloadFileTimeout = setTimeout(reloadMostRecentFile, timeUntilNextMinute);
 }
 
@@ -188,6 +270,44 @@ async function readCSVtoJSON(filename)
     }
 
     currentJSONRows = newJSONRows;
+    currentFileDate = filename.split(".")[0];
+}
+
+function isTimeCheap(time)
+{
+    let NRstart = inpNightRateStart.value;
+    let NRend = inpNightRateEnd.value;
+
+    //check if time is during night rate
+    if (NRstart > NRend) //passes through midnight
+    {
+        if (time >= NRstart || time < NRend)
+        {
+            return true;
+        }
+    }
+    else
+    {
+        if (time >= NRstart && time < NRend)
+        {
+            return true;
+        }
+    }
+
+    //check if time was during a charging period
+    if (currentFileDate in chargeTimes)
+    {
+        let dateAndTime = currentFileDate + "_" + time;
+        for (let chargeTime of chargeTimes[currentFileDate])
+        {
+            if (chargeTime.start < dateAndTime && dateAndTime < chargeTime.end)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 function updateJSONCosts()
@@ -202,16 +322,9 @@ function updateJSONCosts()
         let row = currentJSONRows[i];
         let timePeriod = row["time period"];
         let startTime = timePeriod.split(" - ")[0];
-        let timeParts = startTime.split(":");
-        let hour = parseInt(timeParts[0]);
-        let minute = parseInt(timeParts[1]);
         let cost;
 
-        if (inpEnableNightRate.checked && (
-           hour < 5 ||
-           (hour == 5 && minute < 30) ||
-           (hour == 23 && minute >= 30)
-        ))
+        if (inpEnableNightRate.checked && isTimeCheap(startTime))
         {
             cost = pencePerKWHNight;
             row["night"] = true;
@@ -225,7 +338,7 @@ function updateJSONCosts()
         let periodCost = row["period usage kWh"] * cost;
         cumulativeCost += periodCost;
         row[PERIOD_COST_TITLE] = periodCost;
-        row[PROJECTED_COST_TITLE] = row["1h projected kWh"] * cost / 100; //projected and cumulative cost wishes to be in £
+        row[PROJECTED_COST_TITLE] = row["1h projected kWh"] * cost / 100; //projected and cumulative cost to be in £
         row[CUMULATIVE_COST_TITLE] = (cumulativeCost + standingCharge) / 100;
     }
 }
@@ -239,7 +352,8 @@ function displayJSON()
     let titleRow = document.createElement("thead");
     let titles = currentJSONRows[0];
 
-    let columnOrder = ["time period", "count", "period usage kWh", PERIOD_COST_TITLE, "1h projected kWh", PROJECTED_COST_TITLE, "cumulative kWh", CUMULATIVE_COST_TITLE];
+    let columnOrder = ["time period", "count", "period usage kWh", PERIOD_COST_TITLE, "1h projected kWh",
+        PROJECTED_COST_TITLE, "cumulative kWh", CUMULATIVE_COST_TITLE];
 
     for (let key of columnOrder)
     {
@@ -255,7 +369,8 @@ function displayJSON()
     let trMin, trMax;
     let countMin = Infinity;
     let countMax = 0;
-    let columns2dp = [PERIOD_COST_TITLE, "1h projected kWh", PROJECTED_COST_TITLE, "cumulative kWh", CUMULATIVE_COST_TITLE];
+    let columns2dp = [PERIOD_COST_TITLE, "1h projected kWh", PROJECTED_COST_TITLE, "cumulative kWh",
+        CUMULATIVE_COST_TITLE];
 
     //values want to be displayed in reverse order, so iterate from end to start
     for (let i = currentJSONRows.length - 1; i > 0; i--)
