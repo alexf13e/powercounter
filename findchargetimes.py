@@ -97,7 +97,7 @@ charge_times_dir = f"{config.ROOT_DIR}/chargetimes.csv"
 file_exists = os.path.isfile(charge_times_dir)
 if not file_exists:
     with open(charge_times_dir, "w") as f:
-        f.write("start_date,start_time,end_date,end_time\n")
+        f.write("start,end\n")
 
 with open(charge_times_dir, "a") as f:
     # see long winded note about UTC and daylight savings

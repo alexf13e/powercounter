@@ -58,17 +58,23 @@ inpEnableNightRate.addEventListener("change", () => {
 });
 
 inpNightRateStart.addEventListener("change", () => {
-    updateJSONCosts();
-    displayJSON();
+    if (inpEnableNightRate.checked)
+    {
+        updateJSONCosts();
+        displayJSON();
+    }
+
     setLocalStorage("nightRateStart", inpNightRateStart.value);
 });
 
 inpNightRateEnd.addEventListener("change", () => {
-    updateJSONCosts();
-    displayJSON();
+    if (inpEnableNightRate.checked)
+    {
+        updateJSONCosts();
+        displayJSON();
+    }
     setLocalStorage("nightRateEnd", inpNightRateEnd.value);
 });
-
 
 function loadLocalStorage()
 {
@@ -188,7 +194,7 @@ async function loadChargeTimes()
             end: parts[1]
         };
 
-        let start_date = parts[0].split("T")[0];
+        let start_date = parts[0].split("_")[0];
 
         if (start_date in chargeTimes)
         {
