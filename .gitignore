@@ -2,7 +2,7 @@ logs/*
 .env/
 __pycache__/
 *.csv
-logs.txt
+logindex.txt
 .lgd-nfy0
 run.sh
 api_secrets.py

@@ -119,7 +119,7 @@ function loadLocalStorage()
 async function createLogList()
 {
     //get a list of existing log files
-    let response = await fetch("./logs.txt", {cache: "no-store"});
+    let response = await fetch("./logindex.txt", {cache: "no-store"});
     if (!response.ok)
     {
         alert("failed to find available logs");
