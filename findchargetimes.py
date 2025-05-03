@@ -108,7 +108,7 @@ with open(charge_times_dir, "a") as f:
             if is_dst(dt1):
                 dt1 += datetime.timedelta(hours=1)
                 dt2 += datetime.timedelta(hours=1)
-            f.write(f"{dt1.strftime('%Y-%m-%d')},{dt1.strftime('%H:%M:%S')},{dt2.strftime('%Y-%m-%d')},{dt2.strftime('%H:%M:%S')}\n")
+            f.write(f"{dt1.strftime('%Y-%m-%d_%H:%M:%S')},{dt2.strftime('%Y-%m-%d_%H:%M:%S')}\n")
 
 
 # long-winded note about UTC and daylight savings:

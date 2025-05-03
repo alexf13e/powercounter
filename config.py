@@ -10,7 +10,6 @@ COUNTS_PER_KWH = 4000
 # used for converting ev charging time periods from UTC
 TIME_ZONE = pytz.timezone("Europe/London")
 
-NIGHT_RATE_START_HOUR = 23
-NIGHT_RATE_START_MINUTE = 30
-NIGHT_RATE_END_HOUR = 5
-NIGHT_RATE_END_MINUTE = 30
+# MUST be 24 hour time with leading 0
+NIGHT_RATE_START = "23:30"
+NIGHT_RATE_END = "05:30"

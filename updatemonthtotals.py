@@ -14,49 +14,24 @@ def get_last_sunday_in_month(year, month):
     return datetime.date(year=year, month=month, day=max_sunday_date)
 
 
-def night_rate_through_midnight():
-    if config.NIGHT_RATE_START_HOUR > config.NIGHT_RATE_END_HOUR:
-        return True
-
-    # i doubt this will ever happen but will irk me to not check
-    if config.NIGHT_RATE_START_HOUR == config.NIGHT_RATE_END_HOUR and config.NIGHT_RATE_START_MINUTE > config.NIGHT_RATE_END_MINUTE:
-        return True
-
-    return False
-
-
-def is_night(time_period):
-    period_start = time_period.split(" - ")[0]
-    parts = period_start.split(":")
-    hour = int(parts[0])
-    minute = int(parts[1])
-    if (night_rate_through_midnight()):
+def is_night(time):
+    if config.NIGHT_RATE_START > config.NIGHT_RATE_END:
         # everything after start time and everything before end time
-        return (hour >= config.NIGHT_RATE_START_HOUR and minute >= config.NIGHT_RATE_START_MINUTE) or (hour <= config.NIGHT_RATE_END_HOUR and minute < config.NIGHT_RATE_END_MINUTE)
+        return (time >= config.NIGHT_RATE_START) or (time < config.NIGHT_RATE_END)
     else:
         # everything between start and end time
-        return (hour >= config.NIGHT_RATE_START_HOUR and minute >= config.NIGHT_RATE_START_MINUTE) and (hour <= config.NIGHT_RATE_END_HOUR and minute < config.NIGHT_RATE_END_MINUTE)
+        return (time >= config.NIGHT_RATE_START) and (time < config.NIGHT_RATE_END)
 
 
-def create_datetime(str_date, str_time):
-    year, month, day = str_date.split("-")
-    hour, minute, _ = str_time.split(":")
-    return datetime.datetime(int(year), int(month), int(day), int(hour), int(minute))
-
-
-def is_cheap(date, time_period):
-    if is_night(time_period):
+def is_cheap(date, time):
+    if is_night(time):
         return True
 
     # check for history of daytime charging periods
     if date in cheap_day_periods:
-        time_period_start = time_period.split(" - ")[0]
-        hour, minute, second = time_period_start.split(":")
-        t = datetime.time(hour, minute, second)
-        for (dt1, dt2) in cheap_day_periods[date]:
-            if (dt1.time() < t and t < dt2.time()):
+        for (start_time, end_time) in cheap_day_periods[date]:
+            if start_time < time and time < end_time:
                 return True
-
     return False
 
 
@@ -75,14 +50,12 @@ with open(f"{config.ROOT_DIR}/chargetimes.csv", "r") as f:
     lines = f.readlines()
     for i in range(1, len(lines)): # skip first line with headers
         line = lines[i]
-        start_date, start_time, end_date, end_time = line.split(",")
-        dt1 = create_datetime(start_date, start_time)
-        dt2 = create_datetime(end_date, end_time)
-        if start_date in cheap_day_periods:
-            cheap_day_periods[start_date].append((dt1, dt2))
+        start_time, end_time = line.split(",")
+        start_date = start_time.split("_")[0]
+        if start_time in cheap_day_periods:
+            cheap_day_periods[start_date].append((start_time, end_time))
         else:
-            cheap_day_periods[start_date] = [(dt1, dt2)]
-
+            cheap_day_periods[start_date] = [(start_time, end_time)]
 
 this_month = yesterday
 last_month = this_month + dateutils.relativedelta(months=-1)
@@ -92,16 +65,20 @@ end_date = get_last_sunday_in_month(this_month.year, this_month.month)
 
 cumulative_period_count_day = 0
 cumulative_period_count_night = 0
+
 while start_date <= end_date:
     str_start_date = start_date.strftime('%Y-%m-%d')
     filename = f"{config.ROOT_DIR}/logs/{str_start_date}.csv"
+
     with open(filename, "r") as f:
         lines = f.readlines()
+
         for i in range(1, len(lines)):
             parts = lines[i].split(",")
-            time_period = parts[0]
+            time_period_start = parts[0].split(" - ")[0]
             count = int(parts[1])
-            if is_cheap(str_start_date, time_period):
+
+            if is_cheap(str_start_date, time_period_start):
                 cumulative_period_count_night += count
             else:
                 cumulative_period_count_day += count
