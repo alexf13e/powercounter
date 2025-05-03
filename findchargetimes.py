@@ -20,8 +20,24 @@ def is_dst(dt):
     return aware_dt.dst() != datetime.timedelta(0, 0)
 
 
+def night_rate_through_midnight():
+    if config.NIGHT_RATE_START_HOUR > config.NIGHT_RATE_END_HOUR:
+        return True
+
+    # i doubt this will ever happen but will irk me to not check
+    if config.NIGHT_RATE_START_HOUR == config.NIGHT_RATE_END_HOUR and config.NIGHT_RATE_START_MINUTE > config.NIGHT_RATE_END_MINUTE:
+        return True
+
+    return False
+
+
 def is_night_rate(dt):
-    return (dt.hour < 5 or (dt.hour == 5 and dt.minute < 30) or (dt.hour == 23 and dt.minute >= 30))
+    if (night_rate_through_midnight()):
+        # everything after start time and everything before end time
+        return (dt.hour >= config.NIGHT_RATE_START_HOUR and dt.minute >= config.NIGHT_RATE_START_MINUTE) or (dt.hour <= config.NIGHT_RATE_END_HOUR and dt.minute < config.NIGHT_RATE_END_MINUTE)
+    else:
+        # everything between start and end time
+        return (dt.hour >= config.NIGHT_RATE_START_HOUR and dt.minute >= config.NIGHT_RATE_START_MINUTE) and (dt.hour <= config.NIGHT_RATE_END_HOUR and dt.minute < config.NIGHT_RATE_END_MINUTE)
 
 
 # first need to obtain a kraken token

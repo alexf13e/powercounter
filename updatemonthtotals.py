@@ -5,6 +5,7 @@ import dateutils
 
 import config
 
+
 def get_last_sunday_in_month(year, month):
     weeks = calendar.monthcalendar(year, month) # matrix of date numbers for each week in month (days outside of month are 0)
     max_sunday_date = 0
@@ -16,11 +17,11 @@ def get_last_sunday_in_month(year, month):
 def night_rate_through_midnight():
     if config.NIGHT_RATE_START_HOUR > config.NIGHT_RATE_END_HOUR:
         return True
-    
+
     # i doubt this will ever happen but will irk me to not check
     if config.NIGHT_RATE_START_HOUR == config.NIGHT_RATE_END_HOUR and config.NIGHT_RATE_START_MINUTE > config.NIGHT_RATE_END_MINUTE:
         return True
-    
+
     return False
 
 
@@ -46,7 +47,7 @@ def create_datetime(str_date, str_time):
 def is_cheap(date, time_period):
     if is_night(time_period):
         return True
-    
+
     # check for history of daytime charging periods
     if date in cheap_day_periods:
         time_period_start = time_period.split(" - ")[0]
@@ -55,11 +56,12 @@ def is_cheap(date, time_period):
         for (dt1, dt2) in cheap_day_periods[date]:
             if (dt1.time() < t and t < dt2.time()):
                 return True
-    
-    return False            
+
+    return False
 
 
 today = datetime.date.today()
+#today = datetime.date(year=2025, month=4, day=28)
 yesterday = today - datetime.timedelta(days=1)
 
 # script only wants to run the day after the last sunday of the month. easier to check here and just run every monday with cron
@@ -71,7 +73,8 @@ if yesterday != get_last_sunday_in_month(yesterday.year, yesterday.month):
 cheap_day_periods = {}
 with open(f"{config.ROOT_DIR}/chargetimes.csv", "r") as f:
     lines = f.readlines()
-    for line in lines:
+    for i in range(1, len(lines)): # skip first line with headers
+        line = lines[i]
         start_date, start_time, end_date, end_time = line.split(",")
         dt1 = create_datetime(start_date, start_time)
         dt2 = create_datetime(end_date, end_time)
@@ -79,7 +82,7 @@ with open(f"{config.ROOT_DIR}/chargetimes.csv", "r") as f:
             cheap_day_periods[start_date].append((dt1, dt2))
         else:
             cheap_day_periods[start_date] = [(dt1, dt2)]
-            
+
 
 this_month = yesterday
 last_month = this_month + dateutils.relativedelta(months=-1)
