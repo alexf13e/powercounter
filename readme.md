@@ -5,7 +5,8 @@ A sensor is used to detect flashes from the LED on the electricity metre, which 
 # How to use
 1. Clone the repository (or download as a zip and extract)
 2. Edit `config.py` so that `ROOT_DIR` is the directory to the `powercounter` folder containing the python files etc. This should be the full path if using crontab to automatically run the scripts.
-    * Other fields may also be edited as appropriate
+    * Other fields may be edited as appropriate
+    * You may also wish to edit the GPIO pin being used to detect LED flashes, which is specified in `powercounter.py` with the variable `PIN_LED_READ` near the bottom.
 3. Create a file called `api_secrets.py` in the `powercounter` folder. This will need to contain two values: `ACCOUNT_NUMBER` and `API_KEY`. These can be obtained from Octopus's webpage.
     * The account number is found (as of writing) at the top of the accounts page under the line saying "Hi (your name)"; this link should redirect you to it if you are logged in: https://octopus.energy/dashboard/new/accounts/
     * The API key is found here: https://octopus.energy/dashboard/new/accounts/personal-details/api-access (or click the "personal details" link on the accounts page, then in a box titled "Developer settings" click the "API access" button). Generate an API key and copy and paste it into the `api_secrets.py` file.
@@ -34,3 +35,4 @@ API_KEY = "a_really_long_series_of_letters_and_numbers"
 @reboot sleep 45; python -m http.server 80 --directory /home/pi/powercounter
 ```
 
+The webpage can be accessed by typing the IP address of your Raspberry PI in a web browser and going to the `readings_public.html` page, e.g. `192.168.1.100/readings_public.html`
