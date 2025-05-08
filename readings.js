@@ -52,18 +52,6 @@ inpStandingCharge.addEventListener("change", () => {
     setLocalStorage("penceStandingCharge", inpStandingCharge.value);
 });
 
-inpEnableNightRate.addEventListener("change", () => {
-    updateJSONCosts();
-    displayJSON();
-    setLocalStorage("enableNightRate", inpEnableNightRate.checked);
-});
-
-inpEnableChargeTimes.addEventListener("change", () => {
-    updateJSONCosts();
-    displayJSON();
-    setLocalStorage("enableChargeTimes", inpEnableChargeTimes.checked);
-});
-
 inpNightRateStart.addEventListener("change", () => {
     if (inpEnableNightRate.checked || inpEnableChargeTimes.checked)
     {
@@ -82,6 +70,19 @@ inpNightRateEnd.addEventListener("change", () => {
     }
     setLocalStorage("nightRateEnd", inpNightRateEnd.value);
 });
+
+inpEnableNightRate.addEventListener("change", () => {
+    updateJSONCosts();
+    displayJSON();
+    setLocalStorage("enableNightRate", inpEnableNightRate.checked);
+});
+
+inpEnableChargeTimes.addEventListener("change", () => {
+    updateJSONCosts();
+    displayJSON();
+    setLocalStorage("enableChargeTimes", inpEnableChargeTimes.checked);
+});
+
 
 function loadLocalStorage()
 {
@@ -104,12 +105,6 @@ function loadLocalStorage()
         inpStandingCharge.value = penceStandingCharge;
     }
 
-    let enableNightRate = getLocalStorage("enableNightRate");
-    if (enableNightRate == false)
-    {
-        inpEnableNightRate.checked = false;
-    }
-
     let nightRateStart = getLocalStorage("nightRateStart");
     if (nightRateStart)
     {
@@ -120,6 +115,18 @@ function loadLocalStorage()
     if (nightRateEnd)
     {
         inpNightRateEnd.value = nightRateEnd;
+    }
+
+    let enableNightRate = getLocalStorage("enableNightRate");
+    if (enableNightRate == false)
+    {
+        inpEnableNightRate.checked = false;
+    }
+
+    let enableChargeTimes = getLocalStorage("enableChargeTimes");
+    if (enableChargeTimes == false)
+    {
+        inpEnableChargeTimes.checked = false;
     }
 }
 
