@@ -82,13 +82,13 @@ if not file_exists:
 
 # load existing data for charge times
 cheap_day_periods = {}
-with open(f"{config.ROOT_DIR}/chargetimes.csv", "r") as f:
+with open(charge_times_dir, "r") as f:
     lines = f.readlines()
     for i in range(1, len(lines)): # skip first line with headers
         line = lines[i]
         start_time, end_time = line.split(",")
         start_date = start_time.split("_")[0]
-        if start_time in cheap_day_periods:
+        if start_date in cheap_day_periods:
             cheap_day_periods[start_date].append((start_time, end_time))
         else:
             cheap_day_periods[start_date] = [(start_time, end_time)]
@@ -102,6 +102,8 @@ with open(charge_times_dir, "a") as f:
 
         if is_dst(dt1):
             dt1 += datetime.timedelta(hours=1)
+        
+        if is_dst(dt2):
             dt2 += datetime.timedelta(hours=1)
 
         #check dispatch hasn't already been saved
