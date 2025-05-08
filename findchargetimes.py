@@ -97,12 +97,12 @@ with open(charge_times_dir, "r") as f:
 with open(charge_times_dir, "a") as f:
     # see long winded note about UTC and daylight savings
     for dispatch in dispatches:
-        dt1 = datetime.datetime.fromisoformat(dispatch["start"])
-        dt2 = datetime.datetime.fromisoformat(dispatch["end"])
+        dt1 = datetime.datetime.fromisoformat(dispatch["start"].split("+")[0])
+        dt2 = datetime.datetime.fromisoformat(dispatch["end"].split("+")[0])
 
         if is_dst(dt1):
             dt1 += datetime.timedelta(hours=1)
-        
+
         if is_dst(dt2):
             dt2 += datetime.timedelta(hours=1)
 
@@ -116,10 +116,10 @@ with open(charge_times_dir, "a") as f:
                 if start_time == str_dt1:
                     dispatch_present = True
                     break
-        
+
         if dispatch_present:
             continue
-        
+
         f.write(f"{str_dt1},{str_dt2}\n")
 
 
