@@ -159,6 +159,12 @@ tr:hover
     color: yellow;
 }
 
+.trCharging
+{
+    background-color: greenyellow;
+    color: black;
+}
+
 .trMin
 {
     background-color: lightblue;
@@ -169,9 +175,4 @@ tr:hover
 {
     background-color: orangered;
     color: black;
-}
-
-.sticky
-{
-    position: sticky;
 }

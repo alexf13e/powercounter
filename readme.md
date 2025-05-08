@@ -35,4 +35,4 @@ API_KEY = "a_really_long_series_of_letters_and_numbers"
 @reboot sleep 45; python -m http.server 80 --directory /home/pi/powercounter
 ```
 
-The webpage can be accessed by typing the IP address of your Raspberry PI in a web browser and going to the `readings_public.html` page, e.g. `192.168.1.100/readings_public.html`
+The webpage can be accessed by typing the IP address of your Raspberry PI in a web browser and going to the `readings.html` page, e.g. `192.168.1.100/readings.html`

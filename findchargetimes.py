@@ -20,26 +20,6 @@ def is_dst(dt):
     return aware_dt.dst() != datetime.timedelta(0, 0)
 
 
-def night_rate_through_midnight():
-    if config.NIGHT_RATE_START_HOUR > config.NIGHT_RATE_END_HOUR:
-        return True
-
-    # i doubt this will ever happen but will irk me to not check
-    if config.NIGHT_RATE_START_HOUR == config.NIGHT_RATE_END_HOUR and config.NIGHT_RATE_START_MINUTE > config.NIGHT_RATE_END_MINUTE:
-        return True
-
-    return False
-
-
-def is_night_rate(dt):
-    if (night_rate_through_midnight()):
-        # everything after start time and everything before end time
-        return (dt.hour >= config.NIGHT_RATE_START_HOUR and dt.minute >= config.NIGHT_RATE_START_MINUTE) or (dt.hour <= config.NIGHT_RATE_END_HOUR and dt.minute < config.NIGHT_RATE_END_MINUTE)
-    else:
-        # everything between start and end time
-        return (dt.hour >= config.NIGHT_RATE_START_HOUR and dt.minute >= config.NIGHT_RATE_START_MINUTE) and (dt.hour <= config.NIGHT_RATE_END_HOUR and dt.minute < config.NIGHT_RATE_END_MINUTE)
-
-
 # first need to obtain a kraken token
 m_obtainKrakenToken = '''
 mutation {
@@ -100,7 +80,7 @@ if not file_exists:
         f.write("start,end\n")
 
 
-# load data for cheap daytime charges
+# load existing data for charge times
 cheap_day_periods = {}
 with open(f"{config.ROOT_DIR}/chargetimes.csv", "r") as f:
     lines = f.readlines()
@@ -120,10 +100,9 @@ with open(charge_times_dir, "a") as f:
         dt1 = datetime.datetime.fromisoformat(dispatch["start"])
         dt2 = datetime.datetime.fromisoformat(dispatch["end"])
 
-        if not is_night_rate(dt1):
-            if is_dst(dt1):
-                dt1 += datetime.timedelta(hours=1)
-                dt2 += datetime.timedelta(hours=1)
+        if is_dst(dt1):
+            dt1 += datetime.timedelta(hours=1)
+            dt2 += datetime.timedelta(hours=1)
 
         #check dispatch hasn't already been saved
         str_dt1 = dt1.strftime('%Y-%m-%d_%H:%M:%S')

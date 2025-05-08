@@ -6,6 +6,7 @@ let inpUnitCostDay = document.getElementById("inpUnitCostDay");
 let inpUnitCostNight = document.getElementById("inpUnitCostNight");
 let inpStandingCharge = document.getElementById("inpStandingCharge");
 let inpEnableNightRate = document.getElementById("inpEnableNightRate");
+let inpEnableChargeTimes = document.getElementById("inpEnableChargeTimes");
 let inpNightRateStart = document.getElementById("inpNightRateStart");
 let inpNightRateEnd = document.getElementById("inpNightRateEnd");
 
@@ -57,8 +58,14 @@ inpEnableNightRate.addEventListener("change", () => {
     setLocalStorage("enableNightRate", inpEnableNightRate.checked);
 });
 
+inpEnableChargeTimes.addEventListener("change", () => {
+    updateJSONCosts();
+    displayJSON();
+    setLocalStorage("enableChargeTimes", inpEnableChargeTimes.checked);
+});
+
 inpNightRateStart.addEventListener("change", () => {
-    if (inpEnableNightRate.checked)
+    if (inpEnableNightRate.checked || inpEnableChargeTimes.checked)
     {
         updateJSONCosts();
         displayJSON();
@@ -68,7 +75,7 @@ inpNightRateStart.addEventListener("change", () => {
 });
 
 inpNightRateEnd.addEventListener("change", () => {
-    if (inpEnableNightRate.checked)
+    if (inpEnableNightRate.checked || inpEnableChargeTimes.checked)
     {
         updateJSONCosts();
         displayJSON();
@@ -159,7 +166,7 @@ async function createLogList()
             }
             else
             {
-                reloadMostRecentFile();
+                await reloadMostRecentFile();
             }
         });
 
@@ -279,27 +286,24 @@ async function readCSVtoJSON(filename)
     currentFileDate = filename.split(".")[0];
 }
 
-function isTimeCheap(time)
+function isNightRate(time)
 {
     let NRstart = inpNightRateStart.value;
     let NRend = inpNightRateEnd.value;
 
     //check if time is during night rate
-    if (NRstart > NRend) //passes through midnight
+    if (NRstart > NRend)
     {
-        if (time >= NRstart || time < NRend)
-        {
-            return true;
-        }
+        return (time >= NRstart || time < NRend)
     }
     else
     {
-        if (time >= NRstart && time < NRend)
-        {
-            return true;
-        }
+        return (time >= NRstart && time < NRend)
     }
+}
 
+function isCharging(time)
+{
     //check if time was during a charging period
     if (currentFileDate in chargeTimes)
     {
@@ -328,17 +332,21 @@ function updateJSONCosts()
         let row = currentJSONRows[i];
         let timePeriod = row["time period"];
         let startTime = timePeriod.split(" - ")[0];
-        let cost;
+        let cost = pencePerKWHDay;
 
-        if (inpEnableNightRate.checked && isTimeCheap(startTime))
+        row["night"] = false;
+        row["charging"] = false;
+
+        if (inpEnableChargeTimes.checked && isCharging(startTime))
+        {
+            cost = pencePerKWHNight;
+            row["charging"] = true;
+        }
+        
+        if (inpEnableNightRate.checked && isNightRate(startTime))
         {
             cost = pencePerKWHNight;
             row["night"] = true;
-        }
-        else
-        {
-            row["night"] = false;
-            cost = pencePerKWHDay;
         }
 
         let periodCost = row["period usage kWh"] * cost;
@@ -366,7 +374,6 @@ function displayJSON()
         let title = titles[key];
         let th = document.createElement("th");
         th.innerHTML = title;
-        th.classList.add("sticky");
         titleRow.appendChild(th);
     }
 
@@ -383,7 +390,14 @@ function displayJSON()
     {
         let JSONrow = currentJSONRows[i];
         let tr = document.createElement("tr");
-        if (inpEnableNightRate.checked && JSONrow["night"]) tr.classList.add("trNight");
+        if (inpEnableChargeTimes.checked && JSONrow["charging"])
+        {
+            tr.classList.add("trCharging");
+        }
+        else if (inpEnableNightRate.checked && JSONrow["night"])
+        {
+            tr.classList.add("trNight");
+        }
 
         for (let key of columnOrder)
         {
