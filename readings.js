@@ -129,7 +129,9 @@ async function createLogList()
     let response = await fetch("./logindex.txt", {cache: "no-store"});
     if (!response.ok)
     {
-        alert("failed to find available logs");
+        let p = document.createElement("p");
+        p.innerHTML = "No log files available";
+        dvCSV.appendChild(p);
         return false;
     }
 

@@ -110,6 +110,17 @@ tr:hover
     z-index: 100;
 }
 
+#dvInputs
+{
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+}
+
+#dvInputLabels
+{
+    display: grid;
+}
+
 .saveFileShown
 {
     color: blue;
