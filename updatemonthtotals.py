@@ -29,8 +29,9 @@ def is_cheap(date, time):
 
     # check for history of daytime charging periods
     if date in cheap_day_periods:
+        full_time_string = date + "_" + time
         for (start_time, end_time) in cheap_day_periods[date]:
-            if start_time < time and time < end_time:
+            if start_time < full_time_string and full_time_string < end_time:
                 return True
     return False
 
