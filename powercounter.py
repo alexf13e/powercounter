@@ -49,8 +49,9 @@ def record_count(value):
 
 
 def get_seconds_until_next_record():
-    delta = timedelta(minutes=1)
+    delta = timedelta(minutes=config.READING_INTERVAL_MINUTES)
     now = datetime.now()
+    # record just after the minute to ensure at midnight the reading goes on the next day
     next_record = (now + delta).replace(microsecond=0, second=3)
     return (next_record - now).seconds
 
