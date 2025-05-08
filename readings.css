@@ -75,6 +75,7 @@ tr:hover
 #dvLeft > a
 {
     margin-bottom: 10px;
+    width: fit-content;
 }
 
 #dvFiles
