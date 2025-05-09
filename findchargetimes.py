@@ -20,6 +20,10 @@ def is_dst(dt):
     return aware_dt.dst() != datetime.timedelta(0, 0)
 
 
+def get_start_time(dispatch):
+    return dispatch["start"]
+
+
 # first need to obtain a kraken token
 m_obtainKrakenToken = '''
 mutation {
@@ -70,7 +74,7 @@ if "errors" in response_json:
     exit()
 
 dispatches = response_json["data"]["completedDispatches"]
-
+dispatches.sort(key=get_start_time)
 
 # dispatches have been found, save them to file
 charge_times_dir = f"{config.ROOT_DIR}/chargetimes.csv"
