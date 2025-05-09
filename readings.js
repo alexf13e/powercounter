@@ -1,5 +1,4 @@
 
-let dvFiles = document.getElementById("dvFiles");
 let dvCSV = document.getElementById("dvCSV");
 let aSaveFile = document.getElementById("aSaveFile");
 let inpUnitCostDay = document.getElementById("inpUnitCostDay");
@@ -9,9 +8,11 @@ let inpEnableNightRate = document.getElementById("inpEnableNightRate");
 let inpEnableChargeTimes = document.getElementById("inpEnableChargeTimes");
 let inpNightRateStart = document.getElementById("inpNightRateStart");
 let inpNightRateEnd = document.getElementById("inpNightRateEnd");
+let inpDate = document.getElementById("inpDate");
 
-let currentJSONRows = [];
 let currentFileDate;
+let validFileDates = [];
+let currentJSONRows = [];
 let chargeTimes = {};
 
 const PERIOD_COST_TITLE = "period cost pence";
@@ -22,10 +23,14 @@ let reloadFileTimeout;
 
 window.addEventListener("load", async () => {
     loadLocalStorage();
-    let logsPresent = await createLogList();
-    if (!logsPresent) return;
+    if (await createLogList() == false) return;
 
-    await loadChargeTimes();
+    if (await loadChargeTimes() == false)
+    {
+        inpEnableChargeTimes.checked = false;
+        inpEnableChargeTimes.disabled = true;
+        inpEnableChargeTimes.title = "chargetimes.csv not present";
+    }
 
     //automatically show the most recent file
     await reloadMostRecentFile();
@@ -34,21 +39,18 @@ window.addEventListener("load", async () => {
 inpUnitCostDay.addEventListener("change", () => {
     if (inpUnitCostDay.value == "") inpUnitCostDay.value = 0;
     updateJSONCosts();
-    displayJSON();
     setLocalStorage("pencePerKWHDay", inpUnitCostDay.value);
 });
 
 inpUnitCostNight.addEventListener("change", () => {
     if (inpUnitCostNight.value == "") inpUnitCostNight.value = 0;
     updateJSONCosts();
-    displayJSON();
     setLocalStorage("pencePerKWHDay", inpUnitCostNight.value);
 });
 
 inpStandingCharge.addEventListener("change", () => {
     if (inpStandingCharge.value == "") inpStandingCharge.value = 0;
     updateJSONCosts();
-    displayJSON();
     setLocalStorage("penceStandingCharge", inpStandingCharge.value);
 });
 
@@ -56,7 +58,6 @@ inpNightRateStart.addEventListener("change", () => {
     if (inpEnableNightRate.checked || inpEnableChargeTimes.checked)
     {
         updateJSONCosts();
-        displayJSON();
     }
 
     setLocalStorage("nightRateStart", inpNightRateStart.value);
@@ -66,21 +67,41 @@ inpNightRateEnd.addEventListener("change", () => {
     if (inpEnableNightRate.checked || inpEnableChargeTimes.checked)
     {
         updateJSONCosts();
-        displayJSON();
     }
     setLocalStorage("nightRateEnd", inpNightRateEnd.value);
 });
 
 inpEnableNightRate.addEventListener("change", () => {
     updateJSONCosts();
-    displayJSON();
     setLocalStorage("enableNightRate", inpEnableNightRate.checked);
 });
 
 inpEnableChargeTimes.addEventListener("change", () => {
     updateJSONCosts();
-    displayJSON();
     setLocalStorage("enableChargeTimes", inpEnableChargeTimes.checked);
+});
+
+inpDate.addEventListener("change", async () => {
+    clearTimeout(reloadFileTimeout);
+    let filename = inpDate.value + ".csv";
+
+    if (inpDate.value == validFileDates[0])
+    {
+        await reloadMostRecentFile();
+    }
+    else if (validFileDates.includes(inpDate.value))
+    {
+        await readCSVtoJSON(filename);
+        updateJSONCosts();
+        updateDownloadLink(filename);
+    }
+    else
+    {
+        dvCSV.replaceChildren();
+        let p = document.createElement("p");
+        p.innerHTML = filename + " does not exist";
+        dvCSV.appendChild(p);
+    }
 });
 
 
@@ -137,7 +158,7 @@ async function createLogList()
     if (!response.ok)
     {
         let p = document.createElement("p");
-        p.innerHTML = "No log files available";
+        p.innerHTML = "No log files available (logindex.txt missing)";
         dvCSV.appendChild(p);
         return false;
     }
@@ -154,32 +175,13 @@ async function createLogList()
         return false;
     }
 
-    //create log file list at side of page
+    //store list of valid log dates for use when selecting date
     let lines = text.split("\n");
-    for (let i = 0; i < lines.length; i++)
+    for (let filename of lines)
     {
-        let line = lines[i];
-        if (line == "") continue; //in case stray blank line left in list of log files
-
-        let p = document.createElement("p");
-        p.innerHTML = line;
-        p.addEventListener("click", async () => {
-            clearTimeout(reloadFileTimeout);
-            if (i != 0)
-            {
-                await readCSVtoJSON(line);
-                updateJSONCosts();
-                displayJSON();
-                updateDownloadLink(line);
-                highlightSelectedFile(p);
-            }
-            else
-            {
-                await reloadMostRecentFile();
-            }
-        });
-
-        dvFiles.appendChild(p);
+        if (filename == "") continue; //in case stray blank line left in list of log files
+        let date = filename.split(".")[0];
+        validFileDates.push(date);
     }
 
     return true;
@@ -225,14 +227,13 @@ async function loadChargeTimes()
 
 async function reloadMostRecentFile()
 {
-    let recent = dvFiles.children[0];
-    await readCSVtoJSON(recent.innerHTML);
-    updateJSONCosts();
-    displayJSON();
-    updateDownloadLink(recent.innerHTML);
-    highlightSelectedFile(recent);
+    currentFileDate = validFileDates[0];
+    inpDate.value = currentFileDate;
 
-    currentFileDate = recent.innerHTML.split(".")[0];
+    let currentFile = currentFileDate + ".csv";
+    await readCSVtoJSON(currentFile);
+    updateJSONCosts();
+    updateDownloadLink(currentFile);
 
     //set file to be automatically reloaded each minute
     //wait until 5 seconds past the minute to give time for file to be updated and saved
@@ -293,6 +294,8 @@ async function readCSVtoJSON(filename)
 
     currentJSONRows = newJSONRows;
     currentFileDate = filename.split(".")[0];
+
+    return;
 }
 
 function isNightRate(time)
@@ -364,6 +367,8 @@ function updateJSONCosts()
         row[PROJECTED_COST_TITLE] = row["1h projected kWh"] * cost / 100; //projected and cumulative cost to be in £
         row[CUMULATIVE_COST_TITLE] = (cumulativeCost + standingCharge) / 100;
     }
+
+    displayJSON();
 }
 
 function displayJSON()
@@ -452,16 +457,6 @@ function updateDownloadLink(filename)
     aSaveFile.classList.remove("saveFileHidden");
     aSaveFile.classList.add("saveFileShown");
     aSaveFile.href = "/logs/" + filename;
-}
-
-function highlightSelectedFile(element)
-{
-    //set the currently displayed file's element in the log list to be shown in bold
-    for (let el of dvFiles.children)
-    {
-        el.classList.remove("selectedcsv");
-    }
-    element.classList.add("selectedcsv");
 }
 
 function getLocalStorage(key)

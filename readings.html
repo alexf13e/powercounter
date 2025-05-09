@@ -1,7 +1,9 @@
 <!doctype html>
 <head>
     <meta charset="utf-8" />
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="readings.js" defer></script>
+    <script src="readings_graph.js" defer></script>
     <link rel="stylesheet" href="readings.css">
     <link rel="shortcut icon" href="/lightning.png" type="image/x-icon" />
     <title>Power Usage</title>
@@ -12,23 +14,26 @@
         <a id="aSaveFile" class="saveFileHidden" download>Download current csv file</a>
         <a href="monthtotals.csv" download>Download monthly totals</a>
         <a href="chargetimes.csv" download>Download charging times</a>
-        <div id="dvInputs">
-                <label for="inpUnitCostDay">Day Pence per kWh</label>
-                <input id="inpUnitCostDay" type="number" value="28.96" min="0" step="0.01">
-                <label for="inpUnitCostNight">Night Pence per kWh</label>
-                <input id="inpUnitCostNight" type="number" value="7.00" min="0" step="0.01">
-                <label for="inpStandingCharge">Daily standing charge (pence)</label>
-                <input id="inpStandingCharge" type="number" value="47.849" min="0" step="0.01">
-                <label for="inpNightRateStart">Night rate start time</label>
-                <input id="inpNightRateStart" type="time" value="23:30">
-                <label for="inpNightRateEnd">Night rate end time</label>
-                <input id="inpNightRateEnd" type="time" value="05:30">
-                <label for="inpEnableNightRate">Enable night rate</label>
-                <input id="inpEnableNightRate" type="checkbox" checked="true">
-                <label for="inpEnableChargeTimes">Enable charge times</label>
-                <input id="inpEnableChargeTimes" type="checkbox" checked="true">
+        <div id="dvDate">
+            <label for="inpDate">Log date</label>
+            <input id="inpDate" type="date">
         </div>
-        <div id="dvFiles"></div>
+        <div id="dvInputs">
+            <label for="inpUnitCostDay">Day Pence per kWh</label>
+            <input id="inpUnitCostDay" type="number" value="28.96" min="0" step="0.01">
+            <label for="inpUnitCostNight">Night Pence per kWh</label>
+            <input id="inpUnitCostNight" type="number" value="7.00" min="0" step="0.01">
+            <label for="inpStandingCharge">Daily standing charge (pence)</label>
+            <input id="inpStandingCharge" type="number" value="47.849" min="0" step="0.01">
+            <label for="inpNightRateStart">Night rate start time</label>
+            <input id="inpNightRateStart" type="time" value="23:30">
+            <label for="inpNightRateEnd">Night rate end time</label>
+            <input id="inpNightRateEnd" type="time" value="05:30">
+            <label for="inpEnableNightRate">Enable night rate</label>
+            <input id="inpEnableNightRate" type="checkbox" checked="true">
+            <label for="inpEnableChargeTimes">Enable charge times</label>
+            <input id="inpEnableChargeTimes" type="checkbox" checked="true">
+        </div>
     </div>
     <div id="dvCSV"></div>
 </body>
