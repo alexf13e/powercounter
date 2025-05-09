@@ -6,9 +6,9 @@ body
     margin-top: 0;
 }
 
-input
+label
 {
-    width: 5em;
+    align-self: center;
 }
 
 table
@@ -67,9 +67,7 @@ tr:hover
     position: fixed;
     inset-block-start: 0;
     top: 8px;
-    max-width: 18%;
-    height: 90%;
-    align-self: flex-start;
+    max-width: 15%;
 }
 
 #dvLeft > a
@@ -78,26 +76,24 @@ tr:hover
     width: fit-content;
 }
 
-#dvFiles
+#dvDate
 {
-    margin-top: 30px;
-    overflow: auto;
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    margin-bottom: 20px;
 }
 
-#dvFiles > p
-{
-    text-decoration: underline;
-    cursor: pointer;
-    margin: 5px 50% 0 0;
-    width: fit-content;
-}
-
-#dvCSV
+#dvTable
 {
     position: absolute;
     width: 70%;
     left: 20%;
     top: 8px;
+}
+
+#dvGraph
+{
+    display: none;
 }
 
 #dvHideTop
@@ -115,11 +111,12 @@ tr:hover
 {
     display: grid;
     grid-template-columns: 3fr 1fr;
+    gap: 5px 0;
 }
 
-#dvInputLabels
+#dvInputs > input
 {
-    display: grid;
+    width: 5em;
 }
 
 .saveFileShown
