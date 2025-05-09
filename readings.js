@@ -1,25 +1,43 @@
 
-let dvCSV = document.getElementById("dvCSV");
-let aSaveFile = document.getElementById("aSaveFile");
-let inpUnitCostDay = document.getElementById("inpUnitCostDay");
-let inpUnitCostNight = document.getElementById("inpUnitCostNight");
-let inpStandingCharge = document.getElementById("inpStandingCharge");
-let inpEnableNightRate = document.getElementById("inpEnableNightRate");
-let inpEnableChargeTimes = document.getElementById("inpEnableChargeTimes");
-let inpNightRateStart = document.getElementById("inpNightRateStart");
-let inpNightRateEnd = document.getElementById("inpNightRateEnd");
-let inpDate = document.getElementById("inpDate");
+const dvTable = document.getElementById("dvTable");
+const aSaveFile = document.getElementById("aSaveFile");
+const inpUnitCostDay = document.getElementById("inpUnitCostDay");
+const inpUnitCostNight = document.getElementById("inpUnitCostNight");
+const inpStandingCharge = document.getElementById("inpStandingCharge");
+const inpEnableNightRate = document.getElementById("inpEnableNightRate");
+const inpEnableChargeTimes = document.getElementById("inpEnableChargeTimes");
+const inpNightRateStart = document.getElementById("inpNightRateStart");
+const inpNightRateEnd = document.getElementById("inpNightRateEnd");
+const inpDate = document.getElementById("inpDate");
 
-let currentFileDate;
 let validFileDates = [];
-let currentJSONRows = [];
+let tableColumns = {};
 let chargeTimes = {};
 
-const PERIOD_COST_TITLE = "period cost pence";
-const PROJECTED_COST_TITLE = "1h projected cost £";
-const CUMULATIVE_COST_TITLE = "cumulative cost £";
-
 let reloadFileTimeout;
+
+//these should match the csv file being loaded
+const TH_TIME_PERIOD = "time period";
+const TH_COUNT = "count";
+const TH_PERIOD_USAGE = "period usage kWh";
+const TH_PROJECTED_USAGE = "1h projected kWh";
+const TH_CUMULATIVE_USAGE = "cumulative kWh";
+
+const fileTableHeaders = [TH_TIME_PERIOD, TH_COUNT, TH_PERIOD_USAGE, TH_PROJECTED_USAGE, TH_CUMULATIVE_USAGE];
+
+//costs are generated at runtime and not stored in csv
+const TH_PERIOD_COST = "period cost pence";
+const TH_PROJECTED_COST = "1h projected cost £";
+const TH_CUMULATIVE_COST = "cumulative cost £";
+
+//this is the order the columns will be displayed
+const tableHeaders = [TH_TIME_PERIOD, TH_COUNT, TH_PERIOD_USAGE, TH_PERIOD_COST, TH_PROJECTED_USAGE, TH_PROJECTED_COST,
+    TH_CUMULATIVE_USAGE, TH_CUMULATIVE_COST];
+
+//extra values stored in table data but not used as columns
+const STR_IS_CHARGING = "isCharging";
+const STR_IS_NIGHT = "isNight";
+
 
 window.addEventListener("load", async () => {
     loadLocalStorage();
@@ -38,46 +56,46 @@ window.addEventListener("load", async () => {
 
 inpUnitCostDay.addEventListener("change", () => {
     if (inpUnitCostDay.value == "") inpUnitCostDay.value = 0;
-    updateJSONCosts();
+    updateCosts();
     setLocalStorage("pencePerKWHDay", inpUnitCostDay.value);
 });
 
 inpUnitCostNight.addEventListener("change", () => {
     if (inpUnitCostNight.value == "") inpUnitCostNight.value = 0;
-    updateJSONCosts();
+    updateCosts();
     setLocalStorage("pencePerKWHDay", inpUnitCostNight.value);
 });
 
 inpStandingCharge.addEventListener("change", () => {
     if (inpStandingCharge.value == "") inpStandingCharge.value = 0;
-    updateJSONCosts();
+    updateCosts();
     setLocalStorage("penceStandingCharge", inpStandingCharge.value);
 });
 
 inpNightRateStart.addEventListener("change", () => {
-    if (inpEnableNightRate.checked || inpEnableChargeTimes.checked)
+    if (inpEnableNightRate.checked)
     {
-        updateJSONCosts();
+        updateCosts();
     }
 
     setLocalStorage("nightRateStart", inpNightRateStart.value);
 });
 
 inpNightRateEnd.addEventListener("change", () => {
-    if (inpEnableNightRate.checked || inpEnableChargeTimes.checked)
+    if (inpEnableNightRate.checked)
     {
-        updateJSONCosts();
+        updateCosts();
     }
     setLocalStorage("nightRateEnd", inpNightRateEnd.value);
 });
 
 inpEnableNightRate.addEventListener("change", () => {
-    updateJSONCosts();
+    updateCosts();
     setLocalStorage("enableNightRate", inpEnableNightRate.checked);
 });
 
 inpEnableChargeTimes.addEventListener("change", () => {
-    updateJSONCosts();
+    updateCosts();
     setLocalStorage("enableChargeTimes", inpEnableChargeTimes.checked);
 });
 
@@ -91,19 +109,25 @@ inpDate.addEventListener("change", async () => {
     }
     else if (validFileDates.includes(inpDate.value))
     {
-        await readCSVtoJSON(filename);
-        updateJSONCosts();
+        await buildTableColumns(filename);
+        updateCosts();
         updateDownloadLink(filename);
     }
     else
     {
-        dvCSV.replaceChildren();
-        let p = document.createElement("p");
-        p.innerHTML = filename + " does not exist";
-        dvCSV.appendChild(p);
+        showError(filename + " does not exist");
+        updateDownloadLink("");
     }
 });
 
+
+function showError(message)
+{
+    dvTable.replaceChildren();
+    let p = document.createElement("p");
+    p.innerHTML = message;
+    dvTable.appendChild(p);
+}
 
 function loadLocalStorage()
 {
@@ -154,12 +178,14 @@ function loadLocalStorage()
 async function createLogList()
 {
     //get a list of existing log files
+    //runs once on page load
+
     let response = await fetch("./logindex.txt", {cache: "no-store"});
     if (!response.ok)
     {
         let p = document.createElement("p");
         p.innerHTML = "No log files available (logindex.txt missing)";
-        dvCSV.appendChild(p);
+        dvTable.appendChild(p);
         return false;
     }
 
@@ -171,7 +197,7 @@ async function createLogList()
     {
         let p = document.createElement("p");
         p.innerHTML = "No log files available";
-        dvCSV.appendChild(p);
+        dvTable.appendChild(p);
         return false;
     }
 
@@ -189,6 +215,9 @@ async function createLogList()
 
 async function loadChargeTimes()
 {
+    //get a list of time periods when charging occurred
+    //runs once on page load
+
     let response = await fetch("./chargetimes.csv", {cache: "no-store"});
     if (!response.ok)
     {
@@ -227,12 +256,12 @@ async function loadChargeTimes()
 
 async function reloadMostRecentFile()
 {
-    currentFileDate = validFileDates[0];
-    inpDate.value = currentFileDate;
+    inpDate.value = validFileDates[0];
+    let currentFile = validFileDates[0] + ".csv";
 
-    let currentFile = currentFileDate + ".csv";
-    await readCSVtoJSON(currentFile);
-    updateJSONCosts();
+    if (await buildTableColumns(currentFile) == false) return;
+
+    updateCosts();
     updateDownloadLink(currentFile);
 
     //set file to be automatically reloaded each minute
@@ -242,58 +271,87 @@ async function reloadMostRecentFile()
     reloadFileTimeout = setTimeout(reloadMostRecentFile, timeUntilNextMinute);
 }
 
-async function readCSVtoJSON(filename)
+async function buildTableColumns(filename)
 {
-    //first read the csv into a json object to make modifying values easier
+    //reads data from csv into arrays for each column
+    //runs on log file selection
+
     let response = await fetch("./logs/" + filename);
     if (!response.ok)
     {
         console.error(response);
-        alert("failed to load csv file: " + filename);
-        return;
+        showError("failed to load csv file: " + filename);
+        return false;
     }
 
     let text = await response.text();
     text = text.trim();
 
+    inpDate.value = filename.split(".")[0];
+
     let lines = text.split("\n");
-    let titleLine = lines[0]; //first line in csv contains column titles
+    let headerLine = lines[0]; //first line in csv contains column titles
     let valueLines = lines.slice(1); //remaining lines contain values
 
-    let newJSONRows = [];
-    let titleRow = {};
-    let titles = titleLine.split(",");
-    for (let title of titles)
+    //clear table data and recreate columns
+    tableColumns = {};
+    let presentHeaders = headerLine.split(",");
+
+    //check that no unexpected headers are present
+    for (let header of presentHeaders)
     {
-        titleRow[title] = title;
+        if (!fileTableHeaders.includes(header))
+        {
+            showError("csv does not match expected format");
+            return false;
+        }
     }
 
-    titleRow[PERIOD_COST_TITLE] = PERIOD_COST_TITLE;
-    titleRow[PROJECTED_COST_TITLE] = PROJECTED_COST_TITLE;
-    titleRow[CUMULATIVE_COST_TITLE] = CUMULATIVE_COST_TITLE;
+    //check that all expected headers are present
+    for (let header of fileTableHeaders)
+    {
+        if (!presentHeaders.includes(header))
+        {
+            showError("csv does not match expected format");
+            return false;
+        }
+    }
 
-    newJSONRows.push(titleRow);
+    //add columns arrays to json
+    for (let header of tableHeaders)
+    {
+        tableColumns[header] = [];
+    }
+    
+    //add extra data to be associated with each row
+    tableColumns[STR_IS_CHARGING] = [];
+    tableColumns[STR_IS_NIGHT] = [];
 
+    //fill out columns
     for (let line of valueLines)
     {
-        let valueRow = {};
         let values = line.split(",");
-        for (let i = 0; i < titles.length; i++)
+        for (let i = 0; i < presentHeaders.length; i++)
         {
-            valueRow[titles[i]] = values[i];
-            if (titles[i] != "time period") valueRow[titles[i]] = parseFloat(valueRow[titles[i]]);
+            let header = presentHeaders[i];
+            if (header == TH_TIME_PERIOD)
+            {
+                //time period is a string, everything else is a number
+                tableColumns[header].push(values[i]);
+            }
+            else
+            {
+                tableColumns[header].push(parseFloat(values[i]));
+            }
         }
 
         //costs will be calculated and updated based on unit cost input box
-        valueRow[PERIOD_COST_TITLE] = 0;
-        valueRow[CUMULATIVE_COST_TITLE] = 0;
-        valueRow[PROJECTED_COST_TITLE] = 0;
-
-        newJSONRows.push(valueRow);
+        tableColumns[TH_PERIOD_COST].push(0);
+        tableColumns[TH_PROJECTED_COST].push(0);
+        tableColumns[TH_CUMULATIVE_COST].push(0);
+        tableColumns[STR_IS_CHARGING].push(false);
+        tableColumns[STR_IS_NIGHT].push(false);
     }
-
-    currentJSONRows = newJSONRows;
-    currentFileDate = filename.split(".")[0];
 
     return;
 }
@@ -317,10 +375,10 @@ function isNightRate(time)
 function isCharging(time)
 {
     //check if time was during a charging period
-    if (currentFileDate in chargeTimes)
+    if (inpDate.value in chargeTimes)
     {
-        let dateAndTime = currentFileDate + "_" + time;
-        for (let chargeTime of chargeTimes[currentFileDate])
+        let dateAndTime = inpDate.value + "_" + time;
+        for (let chargeTime of chargeTimes[inpDate.value])
         {
             if (chargeTime.start < dateAndTime && dateAndTime < chargeTime.end)
             {
@@ -332,92 +390,86 @@ function isCharging(time)
     return false;
 }
 
-function updateJSONCosts()
+function updateCosts()
 {
     let pencePerKWHDay = parseFloat(inpUnitCostDay.value);
     let pencePerKWHNight = parseFloat(inpUnitCostNight.value);
     let standingCharge = parseFloat(inpStandingCharge.value);
     let cumulativeCost = 0;
 
-    for (let i = 1; i < currentJSONRows.length; i++)
+    for (let i = 0; i < tableColumns[TH_TIME_PERIOD].length; i++)
     {
-        let row = currentJSONRows[i];
-        let timePeriod = row["time period"];
+        let timePeriod = tableColumns[TH_TIME_PERIOD][i];
         let startTime = timePeriod.split(" - ")[0];
         let cost = pencePerKWHDay;
 
-        row["night"] = false;
-        row["charging"] = false;
+        tableColumns[STR_IS_CHARGING][i] = false;
+        tableColumns[STR_IS_NIGHT][i] = false;
 
         if (inpEnableChargeTimes.checked && isCharging(startTime))
         {
             cost = pencePerKWHNight;
-            row["charging"] = true;
+            tableColumns[STR_IS_CHARGING][i] = true;
         }
         
         if (inpEnableNightRate.checked && isNightRate(startTime))
         {
             cost = pencePerKWHNight;
-            row["night"] = true;
+            tableColumns[STR_IS_NIGHT][i] = true;
         }
 
-        let periodCost = row["period usage kWh"] * cost;
+        let periodCost = tableColumns[TH_PERIOD_USAGE][i] * cost;
         cumulativeCost += periodCost;
-        row[PERIOD_COST_TITLE] = periodCost;
-        row[PROJECTED_COST_TITLE] = row["1h projected kWh"] * cost / 100; //projected and cumulative cost to be in £
-        row[CUMULATIVE_COST_TITLE] = (cumulativeCost + standingCharge) / 100;
+        tableColumns[TH_PERIOD_COST][i] = periodCost;
+        tableColumns[TH_PROJECTED_COST][i] = tableColumns[TH_PROJECTED_USAGE][i] * cost / 100; //projected and cumulative cost to be in £
+        tableColumns[TH_CUMULATIVE_COST][i] = (cumulativeCost + standingCharge) / 100;
     }
 
-    displayJSON();
+    displayTable();
 }
 
-function displayJSON()
+function displayTable()
 {
     //clear existing table data if there were any
-    dvCSV.replaceChildren();
+    dvTable.replaceChildren();
 
     let table = document.createElement("table");
-    let titleRow = document.createElement("thead");
-    let titles = currentJSONRows[0];
+    let headerRow = document.createElement("thead");
 
-    let columnOrder = ["time period", "count", "period usage kWh", PERIOD_COST_TITLE, "1h projected kWh",
-        PROJECTED_COST_TITLE, "cumulative kWh", CUMULATIVE_COST_TITLE];
-
-    for (let key of columnOrder)
+    for (let headerName of tableHeaders)
     {
-        let title = titles[key];
         let th = document.createElement("th");
-        th.innerHTML = title;
-        titleRow.appendChild(th);
+        th.innerHTML = headerName;
+        headerRow.appendChild(th);
     }
 
-    table.appendChild(titleRow);
+    table.appendChild(headerRow);
 
     let trMin, trMax;
     let countMin = Infinity;
     let countMax = 0;
-    let columns2dp = [PERIOD_COST_TITLE, "1h projected kWh", PROJECTED_COST_TITLE, "cumulative kWh",
-        CUMULATIVE_COST_TITLE];
+    let columns2dp = [TH_PERIOD_COST, TH_PROJECTED_USAGE, TH_PROJECTED_COST, TH_CUMULATIVE_USAGE, TH_CUMULATIVE_COST];
 
     //values want to be displayed in reverse order, so iterate from end to start
-    for (let i = currentJSONRows.length - 1; i > 0; i--)
+    for (let i = tableColumns[TH_TIME_PERIOD].length - 1; i >= 0; i--)
     {
-        let JSONrow = currentJSONRows[i];
         let tr = document.createElement("tr");
-        if (inpEnableChargeTimes.checked && JSONrow["charging"])
+        if (inpEnableChargeTimes.checked && tableColumns[STR_IS_CHARGING][i])
         {
             tr.classList.add("trCharging");
         }
-        else if (inpEnableNightRate.checked && JSONrow["night"])
+        else if (inpEnableNightRate.checked && tableColumns[STR_IS_NIGHT][i])
         {
             tr.classList.add("trNight");
         }
 
-        for (let key of columnOrder)
+        //for each column in row i, create the table elements
+        for (let headerName of tableHeaders)
         {
-            let val = JSONrow[key]
+            let val = tableColumns[headerName][i];
+
             let td = document.createElement("td");
-            if (columns2dp.includes(key))
+            if (columns2dp.includes(headerName))
             {
                 td.innerHTML = val.toFixed(2);
             }
@@ -427,7 +479,7 @@ function displayJSON()
             }
             tr.appendChild(td);
 
-            if (key == "count")
+            if (headerName == TH_COUNT)
             {
                 if (val < countMin)
                 {
@@ -448,15 +500,24 @@ function displayJSON()
     trMin.classList.add("trMin");
     trMax.classList.add("trMax");
 
-    dvCSV.appendChild(table);
+    dvTable.appendChild(table);
 }
 
 function updateDownloadLink(filename)
 {
     //update the "download current csv" link for the currently displayed file
-    aSaveFile.classList.remove("saveFileHidden");
-    aSaveFile.classList.add("saveFileShown");
-    aSaveFile.href = "/logs/" + filename;
+    if (filename == "")
+    {
+        aSaveFile.classList.add("saveFileHidden");
+        aSaveFile.classList.remove("saveFileShown");
+        aSaveFile.href = "";
+    }
+    else
+    {
+        aSaveFile.classList.remove("saveFileHidden");
+        aSaveFile.classList.add("saveFileShown");
+        aSaveFile.href = "/logs/" + filename;
+    }
 }
 
 function getLocalStorage(key)

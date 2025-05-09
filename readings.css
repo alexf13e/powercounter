@@ -83,12 +83,17 @@ tr:hover
     margin-bottom: 20px;
 }
 
-#dvCSV
+#dvTable
 {
     position: absolute;
     width: 70%;
     left: 20%;
     top: 8px;
+}
+
+#dvGraph
+{
+    display: none;
 }
 
 #dvHideTop
