@@ -1,11 +1,14 @@
 <!doctype html>
 <head>
     <meta charset="utf-8" />
-    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+
+    <script src="wgl.js" defer></script>
+    <script src="graph.js" defer></script>
     <script src="readings.js" defer></script>
-    <script src="readings_graph.js" defer></script>
+
     <link rel="stylesheet" href="readings.css">
     <link rel="shortcut icon" href="/lightning.png" type="image/x-icon" />
+    
     <title>Power Usage</title>
 </head>
 <body>
@@ -17,6 +20,11 @@
         <div id="dvDate">
             <label for="inpDate">Log date</label>
             <input id="inpDate" type="date">
+        </div>
+        <button id="btnToggleGraph">Show graph</button>
+        <div id="dvGraphData">
+            <label for="inpGraphData">Graph data</label>
+            <select id="inpGraphData"></select>
         </div>
         <div id="dvInputs">
             <label for="inpUnitCostDay">Day Pence per kWh</label>

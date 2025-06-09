@@ -60,6 +60,33 @@ tr:hover
     color: black;
 }
 
+#btnToggleGraph
+{
+    width: fit-content;
+    margin-bottom: 10px;
+}
+
+#cnvPlot
+{
+    width: 100%;
+    height: 100%;
+    grid-area: b;
+}
+
+#cnvXAxis
+{
+    width: 100%;
+    height: 100%;
+    grid-area: d;
+}
+
+#cnvYAxis
+{
+    width: 100%;
+    height: 100%;
+    grid-area: a;
+}
+
 #dvLeft
 {
     display: flex;
@@ -94,6 +121,23 @@ tr:hover
 #dvGraph
 {
     display: none;
+    grid-template-columns: 2fr 30fr;
+    grid-template-rows: 16fr 2fr;
+    grid-template-areas: "a b"
+                         "c d";
+    position: absolute;
+    width: 70%;
+    left: 20%;
+    top: 8px;
+    aspect-ratio: calc(16/9);
+}
+
+#dvGraphData
+{
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+
+    margin-bottom: 10px;
 }
 
 #dvHideTop

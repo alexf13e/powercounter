@@ -9,6 +9,9 @@ const inpEnableChargeTimes = document.getElementById("inpEnableChargeTimes");
 const inpNightRateStart = document.getElementById("inpNightRateStart");
 const inpNightRateEnd = document.getElementById("inpNightRateEnd");
 const inpDate = document.getElementById("inpDate");
+const dvGraph = document.getElementById("dvGraph");
+const btnToggleGraph = document.getElementById("btnToggleGraph");
+const inpGraphData = document.getElementById("inpGraphData");
 
 let validFileDates = [];
 let tableColumns = {};
@@ -35,12 +38,33 @@ const tableHeaders = [TH_TIME_PERIOD, TH_COUNT, TH_PERIOD_USAGE, TH_PERIOD_COST,
     TH_CUMULATIVE_USAGE, TH_CUMULATIVE_COST];
 
 //extra values stored in table data but not used as columns
-const STR_IS_CHARGING = "isCharging";
-const STR_IS_NIGHT = "isNight";
+const STR_PERIOD_TYPE = "periodType";
+
+const PERIOD_TYPE_NORMAL = 0;
+const PERIOD_TYPE_CHARGING = 1;
+const PERIOD_TYPE_NIGHT = 2;
+
+const Y_MAX_PERIOD_USAGE = 0.2;
+const Y_MAX_PERIOD_COST = 5;
+const Y_MAX_CUMULATIVE_USAGE = 50;
+const Y_MAX_CUMULATIVE_COST = 20;
+
+const DP_PERIOD_USAGE = 3;
+const DP_PERIOD_COST = 3;
+const DP_CUMULATIVE_USAGE = 2;
+const DP_CUMULATIVE_COST = 2;
+
+let showGraph = false;
+
+let graph = new Graph(dvGraph);
+graph.setYAxisRange(Y_MAX_PERIOD_USAGE);
+graph.setYDecimalPlaces(DP_PERIOD_USAGE);
 
 
 window.addEventListener("load", async () => {
+    createGraphDataOptions();
     loadLocalStorage();
+    
     if (await createLogList() == false) return;
 
     if (await loadChargeTimes() == false)
@@ -117,7 +141,43 @@ inpDate.addEventListener("change", async () => {
     {
         showError(filename + " does not exist");
         updateDownloadLink("");
+        graph.clear();
     }
+});
+
+btnToggleGraph.addEventListener("click", () => {
+    showGraph = !showGraph;
+    btnToggleGraph.innerHTML = showGraph ? "Show table" : "Show graph";
+    dvTable.style.display = showGraph ? "none" : "block";
+    dvGraph.style.display = showGraph ? "grid" : "none";
+});
+
+inpGraphData.addEventListener("change", () => {
+    if (inpGraphData.value == TH_PERIOD_USAGE)
+    {
+        graph.setYAxisRange(Y_MAX_PERIOD_USAGE);
+        graph.setYDecimalPlaces(DP_PERIOD_USAGE);
+    }
+
+    if (inpGraphData.value == TH_PERIOD_COST)
+    {
+        graph.setYAxisRange(Y_MAX_PERIOD_COST);
+        graph.setYDecimalPlaces(DP_PERIOD_COST);
+    }
+
+    if (inpGraphData.value == TH_CUMULATIVE_USAGE)
+    {
+        graph.setYAxisRange(Y_MAX_CUMULATIVE_USAGE);
+        graph.setYDecimalPlaces(DP_CUMULATIVE_USAGE);
+    }
+
+    if (inpGraphData.value == TH_CUMULATIVE_COST)
+    {
+        graph.setYAxisRange(Y_MAX_CUMULATIVE_COST);
+        graph.setYDecimalPlaces(DP_CUMULATIVE_COST);
+    }
+    
+    displayGraph();
 });
 
 
@@ -173,6 +233,29 @@ function loadLocalStorage()
     {
         inpEnableChargeTimes.checked = false;
     }
+}
+
+function createGraphDataOptions()
+{
+    let o = document.createElement("option");
+    o.value = TH_PERIOD_USAGE;
+    o.innerHTML = TH_PERIOD_USAGE;
+    inpGraphData.appendChild(o);
+
+    o = document.createElement("option");
+    o.value = TH_PERIOD_COST;
+    o.innerHTML = TH_PERIOD_COST;
+    inpGraphData.appendChild(o);
+
+    o = document.createElement("option");
+    o.value = TH_CUMULATIVE_USAGE;
+    o.innerHTML = TH_CUMULATIVE_USAGE;
+    inpGraphData.appendChild(o);
+
+    o = document.createElement("option");
+    o.value = TH_CUMULATIVE_COST;
+    o.innerHTML = TH_CUMULATIVE_COST;
+    inpGraphData.appendChild(o);
 }
 
 async function createLogList()
@@ -324,8 +407,7 @@ async function buildTableColumns(filename)
     }
     
     //add extra data to be associated with each row
-    tableColumns[STR_IS_CHARGING] = [];
-    tableColumns[STR_IS_NIGHT] = [];
+    tableColumns[STR_PERIOD_TYPE] = [];
 
     //fill out columns
     for (let line of valueLines)
@@ -349,8 +431,7 @@ async function buildTableColumns(filename)
         tableColumns[TH_PERIOD_COST].push(0);
         tableColumns[TH_PROJECTED_COST].push(0);
         tableColumns[TH_CUMULATIVE_COST].push(0);
-        tableColumns[STR_IS_CHARGING].push(false);
-        tableColumns[STR_IS_NIGHT].push(false);
+        tableColumns[STR_PERIOD_TYPE].push(PERIOD_TYPE_NORMAL)
     }
 
     return;
@@ -403,19 +484,18 @@ function updateCosts()
         let startTime = timePeriod.split(" - ")[0];
         let cost = pencePerKWHDay;
 
-        tableColumns[STR_IS_CHARGING][i] = false;
-        tableColumns[STR_IS_NIGHT][i] = false;
+        tableColumns[STR_PERIOD_TYPE][i] = PERIOD_TYPE_NORMAL;
 
         if (inpEnableChargeTimes.checked && isCharging(startTime))
         {
             cost = pencePerKWHNight;
-            tableColumns[STR_IS_CHARGING][i] = true;
+            tableColumns[STR_PERIOD_TYPE][i] = PERIOD_TYPE_CHARGING;
         }
         
         if (inpEnableNightRate.checked && isNightRate(startTime))
         {
             cost = pencePerKWHNight;
-            tableColumns[STR_IS_NIGHT][i] = true;
+            tableColumns[STR_PERIOD_TYPE][i] = PERIOD_TYPE_NIGHT;
         }
 
         let periodCost = tableColumns[TH_PERIOD_USAGE][i] * cost;
@@ -454,11 +534,11 @@ function displayTable()
     for (let i = tableColumns[TH_TIME_PERIOD].length - 1; i >= 0; i--)
     {
         let tr = document.createElement("tr");
-        if (inpEnableChargeTimes.checked && tableColumns[STR_IS_CHARGING][i])
+        if (inpEnableChargeTimes.checked && tableColumns[STR_PERIOD_TYPE][i] == PERIOD_TYPE_CHARGING)
         {
             tr.classList.add("trCharging");
         }
-        else if (inpEnableNightRate.checked && tableColumns[STR_IS_NIGHT][i])
+        else if (inpEnableNightRate.checked && tableColumns[STR_PERIOD_TYPE][i] == PERIOD_TYPE_NIGHT)
         {
             tr.classList.add("trNight");
         }
@@ -501,6 +581,33 @@ function displayTable()
     trMax.classList.add("trMax");
 
     dvTable.appendChild(table);
+
+    displayGraph();
+}
+
+function displayGraph()
+{
+    if (inpGraphData.value == TH_PERIOD_USAGE)
+    {
+        graph.setBarData(tableColumns[TH_PERIOD_USAGE], tableColumns[STR_PERIOD_TYPE]);
+    }
+
+    if (inpGraphData.value == TH_PERIOD_COST)
+    {
+        graph.setBarData(tableColumns[TH_PERIOD_COST], tableColumns[STR_PERIOD_TYPE]);
+    }
+
+    if (inpGraphData.value == TH_CUMULATIVE_USAGE)
+    {
+        graph.setLineData(tableColumns[TH_CUMULATIVE_USAGE], tableColumns[STR_PERIOD_TYPE]);
+    }
+
+    if (inpGraphData.value == TH_CUMULATIVE_COST)
+    {
+        graph.setLineData(tableColumns[TH_CUMULATIVE_COST], tableColumns[STR_PERIOD_TYPE]);
+    }
+
+    graph.update();
 }
 
 function updateDownloadLink(filename)
