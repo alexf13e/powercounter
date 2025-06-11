@@ -1,6 +1,8 @@
 # What is it
 A set of python scripts for collecting electricity usage data, along with a webpage for browsing the data in a table and downloading the CSV files which store it.
 A sensor is used to detect flashes from the LED on the electricity metre, which is then fed into the Raspberry PI via GPIO. The `powercounter.py` script will detect and count how many pulses occur each minute, writing the result out to a CSV for each day.
+![image](https://github.com/user-attachments/assets/0ddd8c76-e364-4226-ba52-0751085b5f5d)
+
 
 # How to use
 1. Clone the repository (or download as a zip and extract)
