@@ -491,8 +491,7 @@ function updateCosts()
             cost = pencePerKWHNight;
             tableColumns[STR_PERIOD_TYPE][i] = PERIOD_TYPE_CHARGING;
         }
-        
-        if (inpEnableNightRate.checked && isNightRate(startTime))
+        else if (inpEnableNightRate.checked && isNightRate(startTime)) //prioritise charging over night
         {
             cost = pencePerKWHNight;
             tableColumns[STR_PERIOD_TYPE][i] = PERIOD_TYPE_NIGHT;
