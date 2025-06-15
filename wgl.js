@@ -164,67 +164,77 @@ function wgl_setBarData(yValues, periodTypes)
 function wgl_setLineData(yValues, periodTypes)
 {
     //cannot set line thickness, so have to manually create quads for each line segment
-    let numLines = yValues.length - 1; //1 line for each y value to the next, except the last
+    let numLines = yValues.length; //1 line for each y value to the next, with additional start point at 0,0
     numDataVerts = 6 * numLines; //4 verts per line segment
+
     let vertPositions = new Float32Array(numDataVerts * 2); //2 values (x,y) per vert
     let vertTypes = new Uint32Array(numDataVerts);
     let vertNormals = new Float32Array(numDataVerts * 2);
     let vertOffsetDirs = new Float32Array(numDataVerts);
-    for (let i = 0; i < numLines; i++)
-    {
-        let lineDir = { x: 1, y: yValues[i + 1] - yValues[i] };
+
+    let createLineSegment = (lineIndex, periodType, x1, y1, x2, y2) => {
+        let lineDir = { x: x2 - x1, y: y2 - y1 };
         let lineMag = Math.sqrt(lineDir.x * lineDir.x + lineDir.y * lineDir.y);
         lineDir.x /= lineMag;
         lineDir.y /= lineMag;
         let lineNormal = { x: -lineDir.y, y: lineDir.x };
 
+        //top and bottom share same position, will be offset by normal in vertex shader
         //bottom left
-        vertPositions[i * 12] = i;
-        vertPositions[i * 12 + 1] = yValues[i];
-        vertNormals[i * 12] = lineNormal.x;
-        vertNormals[i * 12 + 1] = lineNormal.y;
-        vertTypes[i * 6] = periodTypes[i];
-        vertOffsetDirs[i * 6] = -1;
+        vertPositions[lineIndex * 12] = x1;
+        vertPositions[lineIndex * 12 + 1] = y1;
+        vertNormals[lineIndex * 12] = lineNormal.x;
+        vertNormals[lineIndex * 12 + 1] = lineNormal.y;
+        vertTypes[lineIndex * 6] = periodType;
+        vertOffsetDirs[lineIndex * 6] = -1;
 
         //top left
-        vertPositions[i * 12 + 2] = i;
-        vertPositions[i * 12 + 3] = yValues[i];
-        vertNormals[i * 12 + 2] = lineNormal.x;
-        vertNormals[i * 12 + 3] = lineNormal.y;
-        vertTypes[i * 6 + 1] = periodTypes[i];
-        vertOffsetDirs[i * 6 + 1] = 1;
+        vertPositions[lineIndex * 12 + 2] = x1;
+        vertPositions[lineIndex * 12 + 3] = y1;
+        vertNormals[lineIndex * 12 + 2] = lineNormal.x;
+        vertNormals[lineIndex * 12 + 3] = lineNormal.y;
+        vertTypes[lineIndex * 6 + 1] = periodType;
+        vertOffsetDirs[lineIndex * 6 + 1] = 1;
 
         //top right
-        vertPositions[i * 12 + 4] = i + 1;
-        vertPositions[i * 12 + 5] = yValues[i + 1];
-        vertNormals[i * 12 + 4] = lineNormal.x;
-        vertNormals[i * 12 + 5] = lineNormal.y;
-        vertTypes[i * 6 + 2] = periodTypes[i];
-        vertOffsetDirs[i * 6 + 2] = 1;
+        vertPositions[lineIndex * 12 + 4] = x2;
+        vertPositions[lineIndex * 12 + 5] = y2;
+        vertNormals[lineIndex * 12 + 4] = lineNormal.x;
+        vertNormals[lineIndex * 12 + 5] = lineNormal.y;
+        vertTypes[lineIndex * 6 + 2] = periodType;
+        vertOffsetDirs[lineIndex * 6 + 2] = 1;
 
         //top right
-        vertPositions[i * 12 + 6] = i + 1;
-        vertPositions[i * 12 + 7] = yValues[i + 1];
-        vertNormals[i * 12 + 6] = lineNormal.x;
-        vertNormals[i * 12 + 7] = lineNormal.y;
-        vertTypes[i * 6 + 3] = periodTypes[i];
-        vertOffsetDirs[i * 6 + 3] = 1;
+        vertPositions[lineIndex * 12 + 6] = x2;
+        vertPositions[lineIndex * 12 + 7] = y2;
+        vertNormals[lineIndex * 12 + 6] = lineNormal.x;
+        vertNormals[lineIndex * 12 + 7] = lineNormal.y;
+        vertTypes[lineIndex * 6 + 3] = periodType;
+        vertOffsetDirs[lineIndex * 6 + 3] = 1;
 
         //bottom right
-        vertPositions[i * 12 + 8] = i + 1;
-        vertPositions[i * 12 + 9] = yValues[i + 1];
-        vertNormals[i * 12 + 8] = lineNormal.x;
-        vertNormals[i * 12 + 9] = lineNormal.y;
-        vertTypes[i * 6 + 4] = periodTypes[i];
-        vertOffsetDirs[i * 6 + 4] = -1;
+        vertPositions[lineIndex * 12 + 8] = x2;
+        vertPositions[lineIndex * 12 + 9] = y2;
+        vertNormals[lineIndex * 12 + 8] = lineNormal.x;
+        vertNormals[lineIndex * 12 + 9] = lineNormal.y;
+        vertTypes[lineIndex * 6 + 4] = periodType;
+        vertOffsetDirs[lineIndex * 6 + 4] = -1;
 
         //bottom left
-        vertPositions[i * 12 + 10] = i;
-        vertPositions[i * 12 + 11] = yValues[i];
-        vertNormals[i * 12 + 10] = lineNormal.x;
-        vertNormals[i * 12 + 11] = lineNormal.y;
-        vertTypes[i * 6 + 5] = periodTypes[i];
-        vertOffsetDirs[i * 6 + 5] = -1;
+        vertPositions[lineIndex * 12 + 10] = x1;
+        vertPositions[lineIndex * 12 + 11] = y1;
+        vertNormals[lineIndex * 12 + 10] = lineNormal.x;
+        vertNormals[lineIndex * 12 + 11] = lineNormal.y;
+        vertTypes[lineIndex * 6 + 5] = periodType;
+        vertOffsetDirs[lineIndex * 6 + 5] = -1;
+    };
+
+    for (let i = 0; i < numLines; i++)
+    {
+        let y1 = (i == 0) ? 0 : yValues[i - 1];
+        let y2 = yValues[i];
+
+        createLineSegment(i, periodTypes[i], i, y1, i + 1, y2);
     }
 
     gl.bindVertexArray(vao_graph);

@@ -308,6 +308,7 @@ class Graph
         //viewWidth is number of minutes visible
         //returned interval is how many minutes between each tick mark
 
+        if (viewWidth <= 30) return 1;
         if (viewWidth < 120) return 5;
         if (viewWidth < 6 * 60) return 15;
         if (viewWidth < 12 * 60) return 30;
