@@ -115,14 +115,14 @@ class Graph
         this.yAxisCtx.font = this.AXIS_FONT_SIZE + " sans-serif";
     }
 
-    setBarData(yValues, periodTypes)
+    setBarData(timePeriods, yValues, periodTypes)
     {
-        wgl_setBarData(yValues, periodTypes);
+        wgl_setBarData(timePeriods, yValues, periodTypes);
     }
 
-    setLineData(yValues, periodTypes)
+    setLineData(timePeriods, yValues, periodTypes)
     {
-        wgl_setLineData(yValues, periodTypes);
+        wgl_setLineData(timePeriods, yValues, periodTypes);
     }
 
     setYAxisRange(yMax)
