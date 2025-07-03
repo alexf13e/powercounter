@@ -55,6 +55,7 @@ const DP_CUMULATIVE_USAGE = 2;
 const DP_CUMULATIVE_COST = 2;
 
 let showGraph = false;
+let forceHideGraph = false;
 
 let graph = new Graph(dvGraph);
 graph.setYAxisRange(Y_MAX_PERIOD_USAGE);
@@ -141,6 +142,8 @@ inpDate.addEventListener("change", async () => {
     {
         showError(filename + " does not exist");
         updateDownloadLink("");
+        forceHideGraph = true;
+        updateGraphVisibility();
         graph.clear();
     }
 });
@@ -148,8 +151,7 @@ inpDate.addEventListener("change", async () => {
 btnToggleGraph.addEventListener("click", () => {
     showGraph = !showGraph;
     btnToggleGraph.innerHTML = showGraph ? "Show table" : "Show graph";
-    dvTable.style.display = showGraph ? "none" : "block";
-    dvGraph.style.display = showGraph ? "grid" : "none";
+    updateGraphVisibility();
 });
 
 inpGraphData.addEventListener("change", () => {
@@ -177,7 +179,10 @@ inpGraphData.addEventListener("change", () => {
         graph.setYDecimalPlaces(DP_CUMULATIVE_COST);
     }
     
-    displayGraph();
+    if (!forceHideGraph)
+    {
+        displayGraph();
+    }
 });
 
 
@@ -581,6 +586,8 @@ function displayTable()
 
     dvTable.appendChild(table);
 
+    forceHideGraph = false;
+    updateGraphVisibility();
     displayGraph();
 }
 
@@ -588,22 +595,22 @@ function displayGraph()
 {
     if (inpGraphData.value == TH_PERIOD_USAGE)
     {
-        graph.setBarData(tableColumns[TH_PERIOD_USAGE], tableColumns[STR_PERIOD_TYPE]);
+        graph.setBarData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_PERIOD_USAGE], tableColumns[STR_PERIOD_TYPE]);
     }
 
     if (inpGraphData.value == TH_PERIOD_COST)
     {
-        graph.setBarData(tableColumns[TH_PERIOD_COST], tableColumns[STR_PERIOD_TYPE]);
+        graph.setBarData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_PERIOD_COST], tableColumns[STR_PERIOD_TYPE]);
     }
 
     if (inpGraphData.value == TH_CUMULATIVE_USAGE)
     {
-        graph.setLineData(tableColumns[TH_CUMULATIVE_USAGE], tableColumns[STR_PERIOD_TYPE]);
+        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_USAGE], tableColumns[STR_PERIOD_TYPE]);
     }
 
     if (inpGraphData.value == TH_CUMULATIVE_COST)
     {
-        graph.setLineData(tableColumns[TH_CUMULATIVE_COST], tableColumns[STR_PERIOD_TYPE]);
+        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_COST], tableColumns[STR_PERIOD_TYPE]);
     }
 
     graph.update();
@@ -624,6 +631,13 @@ function updateDownloadLink(filename)
         aSaveFile.classList.add("saveFileShown");
         aSaveFile.href = "/logs/" + filename;
     }
+}
+
+function updateGraphVisibility()
+{
+    let visible = showGraph && !forceHideGraph;
+    dvTable.style.display = visible ? "none" : "block";
+    dvGraph.style.display = visible ? "grid" : "none";
 }
 
 function getLocalStorage(key)
