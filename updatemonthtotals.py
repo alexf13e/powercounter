@@ -37,7 +37,7 @@ def is_cheap(date, time):
 
 
 today = datetime.date.today()
-#today = datetime.date(year=2025, month=4, day=28)
+#today = datetime.date(year=2025, month=6, day=30)
 yesterday = today - datetime.timedelta(days=1)
 
 # script only wants to run the day after the last sunday of the month. easier to check here and just run every monday with cron
@@ -71,19 +71,24 @@ while start_date <= end_date:
     str_start_date = start_date.strftime('%Y-%m-%d')
     filename = f"{config.ROOT_DIR}/logs/{str_start_date}.csv"
 
-    with open(filename, "r") as f:
-        lines = f.readlines()
+    try:
+        with open(filename, "r") as f:
+            lines = f.readlines()
 
-        for i in range(1, len(lines)):
-            parts = lines[i].split(",")
-            time_period_start = parts[0].split(" - ")[0]
-            count = int(parts[1])
+            for i in range(1, len(lines)):
+                parts = lines[i].split(",")
+                time_period_start = parts[0].split(" - ")[0]
+                count = int(parts[1])
 
-            if is_cheap(str_start_date, time_period_start):
-                cumulative_period_count_night += count
-            else:
-                cumulative_period_count_day += count
+                if is_cheap(str_start_date, time_period_start):
+                    cumulative_period_count_night += count
+                else:
+                    cumulative_period_count_day += count
+    except:
+        print(f"failed to read file {filename}")
+
     start_date += datetime.timedelta(days=1)
+
 
 kwh_day = cumulative_period_count_day / config.COUNTS_PER_KWH
 kwh_night = cumulative_period_count_night / config.COUNTS_PER_KWH
