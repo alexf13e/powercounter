@@ -41,8 +41,8 @@ const TH_CUMULATIVE_COST = "cumulative cost £";
 //options which will be given in the graph data drop down for what data to display
 const STR_HOUR_TOTAL_USAGE = "hour total usage kWh";
 const STR_HOUR_TOTAL_COST = "hour total cost £";
-const graphDataOptions = [TH_PERIOD_USAGE, TH_PERIOD_COST, TH_CUMULATIVE_USAGE, TH_CUMULATIVE_COST, STR_HOUR_TOTAL_USAGE,
-    STR_HOUR_TOTAL_COST];
+const graphDataOptions = [TH_PERIOD_USAGE, TH_PERIOD_COST, STR_HOUR_TOTAL_USAGE, STR_HOUR_TOTAL_COST, TH_CUMULATIVE_USAGE,
+    TH_CUMULATIVE_COST];
 
 //this is the order the columns will be displayed
 const tableHeaders = [TH_TIME_PERIOD, TH_COUNT, TH_PERIOD_USAGE, TH_PERIOD_COST, TH_PROJECTED_USAGE, TH_PROJECTED_COST,
@@ -79,7 +79,7 @@ graph.setYDecimalPlaces(DATA_TYPE_PROPERTIES[TH_PERIOD_USAGE].decimalPlaces);
 window.addEventListener("load", async () => {
     createGraphDataOptions();
     loadLocalStorage();
-    
+
     if (await createLogList() == false) return;
 
     if (await loadChargeTimes() == false)
@@ -181,7 +181,7 @@ btnToggleGraph.addEventListener("click", () => {
 inpGraphData.addEventListener("change", () => {
     graph.setYAxisRange(DATA_TYPE_PROPERTIES[inpGraphData.value].yMax);
     graph.setYDecimalPlaces(DATA_TYPE_PROPERTIES[inpGraphData.value].decimalPlaces);
-    
+
     if (!forceHideGraph)
     {
         updateGraph();
@@ -340,7 +340,7 @@ function initHourlyTotals()
         hourTotalUsage.push(0);
         hourTotalCost.push(0);
         hourPeriodTypes.push(PERIOD_TYPE_NORMAL);
-        
+
         let time = h.toString().padStart(2, "0") + ":00";
         hourTimePeriods.push(time);
     }
@@ -418,7 +418,7 @@ async function buildTableColumns(fileText)
     {
         tableColumns[header] = [];
     }
-    
+
     //add extra data to be associated with each row
     tableColumns[STR_PERIOD_TYPE] = [];
 
@@ -599,7 +599,7 @@ function updateTable()
             let td = document.createElement("td");
             if (headerName in DATA_TYPE_PROPERTIES)
             {
-                
+
                 td.innerHTML = val.toFixed(DATA_TYPE_PROPERTIES[headerName].decimalPlaces);
             }
             else
