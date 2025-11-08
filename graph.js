@@ -15,10 +15,6 @@ class Graph
         this.xAxis = document.createElement("canvas");
         this.yAxis = document.createElement("canvas");
 
-        this.container.appendChild(this.plot);
-        this.container.appendChild(this.xAxis);
-        this.container.appendChild(this.yAxis);
-
         this.plot.id = "cnvPlot";
         this.xAxis.id = "cnvXAxis";
         this.yAxis.id = "cnvYAxis";
@@ -27,6 +23,10 @@ class Graph
         this.initCtx();
         wgl_init(this.plot);
         this.container.style.display = "none";
+
+        this.container.appendChild(this.plot);
+        this.container.appendChild(this.xAxis);
+        this.container.appendChild(this.yAxis);
 
         let colours = [
             0.2, 0.7, 0.9, 1.0, //normal
@@ -88,20 +88,17 @@ class Graph
     {
         const yResolution = 1000;
 
-        let br = this.plot.getBoundingClientRect();
-        let ar = br.width / br.height;
+        let ar = 15.0 / 8.0;
         this.plot.width = ar * yResolution;
         this.plot.height = yResolution;
 
-        br = this.xAxis.getBoundingClientRect();
-        ar = br.height / br.width;
+        ar = 15.0 / 1.0;
         this.xAxis.width = this.plot.width;
-        this.xAxis.height = ar * this.xAxis.width;
+        this.xAxis.height = this.plot.width / ar;
 
-        br = this.yAxis.getBoundingClientRect();
-        ar = br.width / br.height;
-        this.yAxis.height = this.plot.height;
+        ar = 1.0 / 8.0;
         this.yAxis.width = ar * this.plot.height;
+        this.yAxis.height = this.plot.height;
 
         this.xAxisCtx = this.xAxis.getContext("2d");
         this.yAxisCtx = this.yAxis.getContext("2d");
@@ -115,14 +112,14 @@ class Graph
         this.yAxisCtx.font = this.AXIS_FONT_SIZE + " sans-serif";
     }
 
-    setBarData(timePeriods, yValues, periodTypes)
+    setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes)
     {
-        wgl_setBarData(timePeriods, yValues, periodTypes);
+        wgl_setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes);
     }
 
-    setLineData(timePeriods, yValues, periodTypes)
+    setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes)
     {
-        wgl_setLineData(timePeriods, yValues, periodTypes);
+        wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes);
     }
 
     setYAxisRange(yMax)
@@ -331,7 +328,7 @@ class Graph
         this.xAxisCtx.beginPath();
             let interval = this.getTickIntervalX(this.viewWindow.x2 - this.viewWindow.x1);
             let x1 = Math.max(Math.floor(this.viewWindow.x1 / interval), 1) * interval; //a bit cheaty but didnt want to deal with making the canvas wider to fit edge timestamps
-            for (let xGraph = x1; xGraph < this.viewWindow.x2 - 0.1; xGraph += interval)
+            for (let xGraph = x1; xGraph < this.viewWindow.x2 - 0.001; xGraph += interval)
             {
                 let xCanvas = this.graphToCanvasPos({ x: xGraph, y: 0 }).x;
                 this.xAxisCtx.moveTo(xCanvas, 0);
@@ -355,7 +352,7 @@ class Graph
         this.yAxisCtx.beginPath();
             interval = this.getTickIntervalY(this.viewWindow.y2 - this.viewWindow.y1);
             let y1 = Math.max(Math.floor(this.viewWindow.y1 / interval), 1) * interval;
-            for (let yGraph = y1; yGraph < this.viewWindow.y2; yGraph += interval)
+            for (let yGraph = y1; yGraph < this.viewWindow.y2 - 0.001; yGraph += interval)
             {
                 let yCanvas = this.graphToCanvasPos({ x: 0, y: yGraph }).y;
                 this.yAxisCtx.moveTo(this.yAxis.width, yCanvas);

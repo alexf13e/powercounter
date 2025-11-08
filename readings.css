@@ -121,15 +121,15 @@ tr:hover
 #dvGraph
 {
     display: none;
-    grid-template-columns: 2fr 30fr;
-    grid-template-rows: 16fr 2fr;
+    grid-template-columns: 1fr 15fr;
+    grid-template-rows: 8fr 1fr;
     grid-template-areas: "a b"
                          "c d";
     position: absolute;
     width: 70%;
     left: 20%;
     top: 8px;
-    aspect-ratio: calc(16/9);
+    aspect-ratio: 16/9;
 }
 
 #dvGraphData

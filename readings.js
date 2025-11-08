@@ -17,6 +17,11 @@ let validFileDates = [];
 let tableColumns = {};
 let chargeTimes = {};
 
+let hourTotalUsage = [];
+let hourTotalCost = [];
+let hourPeriodTypes = [];
+let hourTimePeriods = [];
+
 let reloadFileTimeout;
 
 //these should match the csv file being loaded
@@ -33,6 +38,12 @@ const TH_PERIOD_COST = "period cost pence";
 const TH_PROJECTED_COST = "1h projected cost £";
 const TH_CUMULATIVE_COST = "cumulative cost £";
 
+//options which will be given in the graph data drop down for what data to display
+const STR_HOUR_TOTAL_USAGE = "hour total usage kWh";
+const STR_HOUR_TOTAL_COST = "hour total cost £";
+const graphDataOptions = [TH_PERIOD_USAGE, TH_PERIOD_COST, TH_CUMULATIVE_USAGE, TH_CUMULATIVE_COST, STR_HOUR_TOTAL_USAGE,
+    STR_HOUR_TOTAL_COST];
+
 //this is the order the columns will be displayed
 const tableHeaders = [TH_TIME_PERIOD, TH_COUNT, TH_PERIOD_USAGE, TH_PERIOD_COST, TH_PROJECTED_USAGE, TH_PROJECTED_COST,
     TH_CUMULATIVE_USAGE, TH_CUMULATIVE_COST];
@@ -40,26 +51,29 @@ const tableHeaders = [TH_TIME_PERIOD, TH_COUNT, TH_PERIOD_USAGE, TH_PERIOD_COST,
 //extra values stored in table data but not used as columns
 const STR_PERIOD_TYPE = "periodType";
 
+//different categories for each period, used for colouring and price calculation
 const PERIOD_TYPE_NORMAL = 0;
 const PERIOD_TYPE_CHARGING = 1;
 const PERIOD_TYPE_NIGHT = 2;
 
-const Y_MAX_PERIOD_USAGE = 0.2;
-const Y_MAX_PERIOD_COST = 5;
-const Y_MAX_CUMULATIVE_USAGE = 50;
-const Y_MAX_CUMULATIVE_COST = 20;
+//additional properties for each data type used when displaying their values
+const DATA_TYPE_PROPERTIES = {};
+DATA_TYPE_PROPERTIES[TH_PERIOD_USAGE] = { yMax: 0.2, decimalPlaces: 3 };
+DATA_TYPE_PROPERTIES[TH_PERIOD_COST] = { yMax: 5, decimalPlaces: 3 };
+DATA_TYPE_PROPERTIES[TH_CUMULATIVE_USAGE] = { yMax: 50, decimalPlaces: 2 };
+DATA_TYPE_PROPERTIES[TH_CUMULATIVE_COST] = { yMax: 20, decimalPlaces: 2 };
+DATA_TYPE_PROPERTIES[TH_PROJECTED_USAGE] = { yMax: 10, decimalPlaces: 2 };
+DATA_TYPE_PROPERTIES[TH_PROJECTED_COST] = { yMax: 3, decimalPlaces: 2 };
+DATA_TYPE_PROPERTIES[STR_HOUR_TOTAL_USAGE] = { yMax: 10, decimalPlaces: 3 };
+DATA_TYPE_PROPERTIES[STR_HOUR_TOTAL_COST] = { yMax: 3, decimalPlaces: 2 };
 
-const DP_PERIOD_USAGE = 3;
-const DP_PERIOD_COST = 3;
-const DP_CUMULATIVE_USAGE = 2;
-const DP_CUMULATIVE_COST = 2;
-
-let showGraph = false;
-let forceHideGraph = false;
+let showGraph = false; //toggle between showing the graph or table
+let forceHideGraph = false; //force the graph to be hidden when a file is not found and a message wants to be displayed
+let rememberedScrollHeight = null;
 
 let graph = new Graph(dvGraph);
-graph.setYAxisRange(Y_MAX_PERIOD_USAGE);
-graph.setYDecimalPlaces(DP_PERIOD_USAGE);
+graph.setYAxisRange(DATA_TYPE_PROPERTIES[TH_PERIOD_USAGE].yMax);
+graph.setYDecimalPlaces(DATA_TYPE_PROPERTIES[TH_PERIOD_USAGE].decimalPlaces);
 
 
 window.addEventListener("load", async () => {
@@ -75,32 +89,34 @@ window.addEventListener("load", async () => {
         inpEnableChargeTimes.title = "chargetimes.csv not present";
     }
 
+    initHourlyTotals();
+
     //automatically show the most recent file
     await reloadMostRecentFile();
 });
 
 inpUnitCostDay.addEventListener("change", () => {
     if (inpUnitCostDay.value == "") inpUnitCostDay.value = 0;
-    updateCosts();
+    updateCosts(true);
     setLocalStorage("pencePerKWHDay", inpUnitCostDay.value);
 });
 
 inpUnitCostNight.addEventListener("change", () => {
     if (inpUnitCostNight.value == "") inpUnitCostNight.value = 0;
-    updateCosts();
+    updateCosts(true);
     setLocalStorage("pencePerKWHDay", inpUnitCostNight.value);
 });
 
 inpStandingCharge.addEventListener("change", () => {
     if (inpStandingCharge.value == "") inpStandingCharge.value = 0;
-    updateCosts();
+    updateCosts(true);
     setLocalStorage("penceStandingCharge", inpStandingCharge.value);
 });
 
 inpNightRateStart.addEventListener("change", () => {
     if (inpEnableNightRate.checked)
     {
-        updateCosts();
+        updateCosts(true);
     }
 
     setLocalStorage("nightRateStart", inpNightRateStart.value);
@@ -109,18 +125,18 @@ inpNightRateStart.addEventListener("change", () => {
 inpNightRateEnd.addEventListener("change", () => {
     if (inpEnableNightRate.checked)
     {
-        updateCosts();
+        updateCosts(true);
     }
     setLocalStorage("nightRateEnd", inpNightRateEnd.value);
 });
 
 inpEnableNightRate.addEventListener("change", () => {
-    updateCosts();
+    updateCosts(true);
     setLocalStorage("enableNightRate", inpEnableNightRate.checked);
 });
 
 inpEnableChargeTimes.addEventListener("change", () => {
-    updateCosts();
+    updateCosts(true);
     setLocalStorage("enableChargeTimes", inpEnableChargeTimes.checked);
 });
 
@@ -134,9 +150,7 @@ inpDate.addEventListener("change", async () => {
     }
     else if (validFileDates.includes(inpDate.value))
     {
-        await buildTableColumns(filename);
-        updateCosts();
-        updateDownloadLink(filename);
+        await loadNewFile(filename);
     }
     else
     {
@@ -149,39 +163,28 @@ inpDate.addEventListener("change", async () => {
 });
 
 btnToggleGraph.addEventListener("click", () => {
+    if (!showGraph)
+    {
+        rememberedScrollHeight = window.scrollY;
+    }
+
     showGraph = !showGraph;
     btnToggleGraph.innerHTML = showGraph ? "Show table" : "Show graph";
     updateGraphVisibility();
+
+    if (!showGraph && rememberedScrollHeight != null)
+    {
+        window.scrollTo(0, rememberedScrollHeight);
+    }
 });
 
 inpGraphData.addEventListener("change", () => {
-    if (inpGraphData.value == TH_PERIOD_USAGE)
-    {
-        graph.setYAxisRange(Y_MAX_PERIOD_USAGE);
-        graph.setYDecimalPlaces(DP_PERIOD_USAGE);
-    }
-
-    if (inpGraphData.value == TH_PERIOD_COST)
-    {
-        graph.setYAxisRange(Y_MAX_PERIOD_COST);
-        graph.setYDecimalPlaces(DP_PERIOD_COST);
-    }
-
-    if (inpGraphData.value == TH_CUMULATIVE_USAGE)
-    {
-        graph.setYAxisRange(Y_MAX_CUMULATIVE_USAGE);
-        graph.setYDecimalPlaces(DP_CUMULATIVE_USAGE);
-    }
-
-    if (inpGraphData.value == TH_CUMULATIVE_COST)
-    {
-        graph.setYAxisRange(Y_MAX_CUMULATIVE_COST);
-        graph.setYDecimalPlaces(DP_CUMULATIVE_COST);
-    }
+    graph.setYAxisRange(DATA_TYPE_PROPERTIES[inpGraphData.value].yMax);
+    graph.setYDecimalPlaces(DATA_TYPE_PROPERTIES[inpGraphData.value].decimalPlaces);
     
     if (!forceHideGraph)
     {
-        displayGraph();
+        updateGraph();
     }
 });
 
@@ -242,25 +245,13 @@ function loadLocalStorage()
 
 function createGraphDataOptions()
 {
-    let o = document.createElement("option");
-    o.value = TH_PERIOD_USAGE;
-    o.innerHTML = TH_PERIOD_USAGE;
-    inpGraphData.appendChild(o);
-
-    o = document.createElement("option");
-    o.value = TH_PERIOD_COST;
-    o.innerHTML = TH_PERIOD_COST;
-    inpGraphData.appendChild(o);
-
-    o = document.createElement("option");
-    o.value = TH_CUMULATIVE_USAGE;
-    o.innerHTML = TH_CUMULATIVE_USAGE;
-    inpGraphData.appendChild(o);
-
-    o = document.createElement("option");
-    o.value = TH_CUMULATIVE_COST;
-    o.innerHTML = TH_CUMULATIVE_COST;
-    inpGraphData.appendChild(o);
+    for (let optionText of graphDataOptions)
+    {
+        let o = document.createElement("option");
+        o.value = optionText;
+        o.innerHTML = optionText;
+        inpGraphData.appendChild(o);
+    }
 }
 
 async function createLogList()
@@ -342,28 +333,21 @@ async function loadChargeTimes()
     }
 }
 
-async function reloadMostRecentFile()
+function initHourlyTotals()
 {
-    inpDate.value = validFileDates[0];
-    let currentFile = validFileDates[0] + ".csv";
-
-    if (await buildTableColumns(currentFile) == false) return;
-
-    updateCosts();
-    updateDownloadLink(currentFile);
-
-    //set file to be automatically reloaded each minute
-    //wait until 5 seconds past the minute to give time for file to be updated and saved
-    let d = new Date();
-    let timeUntilNextMinute = (60 - d.getSeconds() + 5) * 1000;
-    reloadFileTimeout = setTimeout(reloadMostRecentFile, timeUntilNextMinute);
+    for (let h = 0; h < 24; h++)
+    {
+        hourTotalUsage.push(0);
+        hourTotalCost.push(0);
+        hourPeriodTypes.push(PERIOD_TYPE_NORMAL);
+        
+        let time = h.toString().padStart(2, "0") + ":00";
+        hourTimePeriods.push(time);
+    }
 }
 
-async function buildTableColumns(filename)
+async function loadNewFile(filename)
 {
-    //reads data from csv into arrays for each column
-    //runs on log file selection
-
     let response = await fetch("./logs/" + filename);
     if (!response.ok)
     {
@@ -377,7 +361,31 @@ async function buildTableColumns(filename)
 
     inpDate.value = filename.split(".")[0];
 
-    let lines = text.split("\n");
+    if (buildTableColumns(text) == false) return;
+
+    updateHourUsageTotals();
+    updateCosts(false);
+    updateGraph();
+    updateDownloadLink(filename);
+}
+
+async function reloadMostRecentFile()
+{
+    inpDate.value = validFileDates[0];
+    let currentFile = validFileDates[0] + ".csv";
+
+    await loadNewFile(currentFile);
+
+    //set file to be automatically reloaded each minute
+    //wait until 5 seconds past the minute to give time for file to be updated and saved
+    let d = new Date();
+    let timeUntilNextMinute = (60 - d.getSeconds() + 5) * 1000;
+    reloadFileTimeout = setTimeout(reloadMostRecentFile, timeUntilNextMinute);
+}
+
+async function buildTableColumns(fileText)
+{
+    let lines = fileText.split("\n");
     let headerLine = lines[0]; //first line in csv contains column titles
     let valueLines = lines.slice(1); //remaining lines contain values
 
@@ -476,12 +484,18 @@ function isCharging(time)
     return false;
 }
 
-function updateCosts()
+function updateCosts(doUpdateGraph)
 {
     let pencePerKWHDay = parseFloat(inpUnitCostDay.value);
     let pencePerKWHNight = parseFloat(inpUnitCostNight.value);
     let standingCharge = parseFloat(inpStandingCharge.value);
     let cumulativeCost = 0;
+
+    for (let h = 0; h < 24; h++)
+    {
+        hourTotalCost[h] = 0;
+        hourPeriodTypes[h] = PERIOD_TYPE_NORMAL;
+    }
 
     for (let i = 0; i < tableColumns[TH_TIME_PERIOD].length; i++)
     {
@@ -507,12 +521,43 @@ function updateCosts()
         tableColumns[TH_PERIOD_COST][i] = periodCost;
         tableColumns[TH_PROJECTED_COST][i] = tableColumns[TH_PROJECTED_USAGE][i] * cost / 100; //projected and cumulative cost to be in £
         tableColumns[TH_CUMULATIVE_COST][i] = (cumulativeCost + standingCharge) / 100;
+
+
+        let hour = parseInt(tableColumns[TH_TIME_PERIOD][i].split(":")[0]);
+        hourTotalCost[hour] += periodCost / 100;
+
+        if (tableColumns[STR_PERIOD_TYPE][i] == PERIOD_TYPE_CHARGING || hourPeriodTypes[hour] == PERIOD_TYPE_NORMAL) //priority is charging > night > normal
+        {
+            hourPeriodTypes[hour] = tableColumns[STR_PERIOD_TYPE][i];
+        }
     }
 
-    displayTable();
+    updateTable();
+
+    if (doUpdateGraph && (
+        inpGraphData.value == TH_PERIOD_COST ||
+        inpGraphData.value == TH_CUMULATIVE_COST ||
+        inpGraphData.value == STR_HOUR_TOTAL_COST))
+    {
+        updateGraph();
+    }
 }
 
-function displayTable()
+function updateHourUsageTotals()
+{
+    for (let h = 0; h < 24; h++)
+    {
+        hourTotalUsage[h] = 0;
+    }
+
+    for (let i = 0; i < tableColumns[TH_TIME_PERIOD].length; i++)
+    {
+        let hour = parseInt(tableColumns[TH_TIME_PERIOD][i].split(":")[0]);
+        hourTotalUsage[hour] += tableColumns[TH_PERIOD_USAGE][i];
+    }
+}
+
+function updateTable()
 {
     //clear existing table data if there were any
     dvTable.replaceChildren();
@@ -532,7 +577,6 @@ function displayTable()
     let trMin, trMax;
     let countMin = Infinity;
     let countMax = 0;
-    let columns2dp = [TH_PERIOD_COST, TH_PROJECTED_USAGE, TH_PROJECTED_COST, TH_CUMULATIVE_USAGE, TH_CUMULATIVE_COST];
 
     //values want to be displayed in reverse order, so iterate from end to start
     for (let i = tableColumns[TH_TIME_PERIOD].length - 1; i >= 0; i--)
@@ -553,9 +597,10 @@ function displayTable()
             let val = tableColumns[headerName][i];
 
             let td = document.createElement("td");
-            if (columns2dp.includes(headerName))
+            if (headerName in DATA_TYPE_PROPERTIES)
             {
-                td.innerHTML = val.toFixed(2);
+                
+                td.innerHTML = val.toFixed(DATA_TYPE_PROPERTIES[headerName].decimalPlaces);
             }
             else
             {
@@ -588,29 +633,38 @@ function displayTable()
 
     forceHideGraph = false;
     updateGraphVisibility();
-    displayGraph();
 }
 
-function displayGraph()
+function updateGraph()
 {
     if (inpGraphData.value == TH_PERIOD_USAGE)
     {
-        graph.setBarData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_PERIOD_USAGE], tableColumns[STR_PERIOD_TYPE]);
+        graph.setBarData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_PERIOD_USAGE], tableColumns[STR_PERIOD_TYPE], 1);
     }
 
     if (inpGraphData.value == TH_PERIOD_COST)
     {
-        graph.setBarData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_PERIOD_COST], tableColumns[STR_PERIOD_TYPE]);
+        graph.setBarData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_PERIOD_COST], tableColumns[STR_PERIOD_TYPE], 1);
     }
 
     if (inpGraphData.value == TH_CUMULATIVE_USAGE)
     {
-        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_USAGE], tableColumns[STR_PERIOD_TYPE]);
+        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_USAGE], tableColumns[STR_PERIOD_TYPE], 1);
     }
 
     if (inpGraphData.value == TH_CUMULATIVE_COST)
     {
-        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_COST], tableColumns[STR_PERIOD_TYPE]);
+        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_COST], tableColumns[STR_PERIOD_TYPE], 1);
+    }
+
+    if (inpGraphData.value == STR_HOUR_TOTAL_USAGE)
+    {
+        graph.setBarData(hourTimePeriods, hourTotalUsage, hourPeriodTypes, 60);
+    }
+
+    if (inpGraphData.value == STR_HOUR_TOTAL_COST)
+    {
+        graph.setBarData(hourTimePeriods, hourTotalCost, hourPeriodTypes, 60);
     }
 
     graph.update();

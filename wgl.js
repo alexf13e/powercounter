@@ -106,7 +106,7 @@ function wgl_createProgram(vertexShader, fragmentShader)
     return undefined;
 }
 
-function wgl_setBarData(timePeriods, yValues, periodTypes)
+function wgl_setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes)
 {
     //yValues is an array of y values, which whill be drawn as bars with width of 1 unit
     //the whole graph will have width of 1440 units (one for each minute in the day)
@@ -131,15 +131,15 @@ function wgl_setBarData(timePeriods, yValues, periodTypes)
         vertPositions[i * 12 + 3] = yValues[i];
 
         //top right
-        vertPositions[i * 12 + 4] = x + 1;
+        vertPositions[i * 12 + 4] = x + periodDurationMinutes;
         vertPositions[i * 12 + 5] = yValues[i];
 
         //top right
-        vertPositions[i * 12 + 6] = x + 1;
+        vertPositions[i * 12 + 6] = x + periodDurationMinutes;
         vertPositions[i * 12 + 7] = yValues[i];
 
         //bottom right
-        vertPositions[i * 12 + 8] = x + 1;
+        vertPositions[i * 12 + 8] = x + periodDurationMinutes;
         vertPositions[i * 12 + 9] = 0;
 
         //bottom left
@@ -166,7 +166,7 @@ function wgl_setBarData(timePeriods, yValues, periodTypes)
     drawMode = DRAWMODE_BAR;
 }
 
-function wgl_setLineData(timePeriods, yValues, periodTypes)
+function wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes)
 {
     //cannot set line thickness, so have to manually create quads for each line segment
     let numLines = yValues.length; //1 line for each y value to the next, with additional start point at 0,0
@@ -243,7 +243,7 @@ function wgl_setLineData(timePeriods, yValues, periodTypes)
         let y1 = (i == 0) ? 0 : yValues[i - 1];
         let y2 = yValues[i];
 
-        createLineSegment(i, periodTypes[i], x, y1, x + 1, y2);
+        createLineSegment(i, periodTypes[i], x, y1, x + periodDurationMinutes, y2);
     }
 
     gl.bindVertexArray(vao_graph);
