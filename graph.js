@@ -67,7 +67,7 @@ class Graph
                 this.initCtx();
                 wgl_onResize();
                 this.container.style.display = showGraph ? "grid" : "none";
-                this.update();
+                this.draw();
             }, 200);
         });
 
@@ -271,7 +271,7 @@ class Graph
             let delta = { x: currentMouseWorld.x - prevMouseWorld.x, y: currentMouseWorld.y - prevMouseWorld.y };
             this.panView(delta);
             this.restrictView();
-            this.update();
+            this.draw();
         }
 
         this.prevMousePos = currentMouse;
@@ -295,7 +295,7 @@ class Graph
         const zoomDir = -Math.sign(event.deltaY);
 
         this.changeZoom(zoomMag * zoomDir);
-        this.update()
+        this.draw()
 
         if (!this.mouseHeld) this.mouseTarget = null;
     }
@@ -363,7 +363,7 @@ class Graph
         this.yAxisCtx.stroke();
     }
 
-    update()
+    draw()
     {
         wgl_setViewWindow(this.viewWindow);
         wgl_clear();

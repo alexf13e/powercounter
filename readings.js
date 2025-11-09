@@ -41,8 +41,9 @@ const TH_CUMULATIVE_COST = "cumulative cost £";
 //options which will be given in the graph data drop down for what data to display
 const STR_HOUR_TOTAL_USAGE = "hour total usage kWh";
 const STR_HOUR_TOTAL_COST = "hour total cost £";
-const graphDataOptions = [TH_PERIOD_USAGE, TH_PERIOD_COST, STR_HOUR_TOTAL_USAGE, STR_HOUR_TOTAL_COST, TH_CUMULATIVE_USAGE,
-    TH_CUMULATIVE_COST];
+const STR_PERIOD_AVERAGE_RATE = "period usage rate kW";
+const graphDataOptions = [TH_PERIOD_USAGE, TH_PERIOD_COST, STR_HOUR_TOTAL_USAGE, STR_HOUR_TOTAL_COST,
+    STR_PERIOD_AVERAGE_RATE, TH_CUMULATIVE_USAGE, TH_CUMULATIVE_COST];
 
 //this is the order the columns will be displayed
 const tableHeaders = [TH_TIME_PERIOD, TH_COUNT, TH_PERIOD_USAGE, TH_PERIOD_COST, TH_PROJECTED_USAGE, TH_PROJECTED_COST,
@@ -64,6 +65,7 @@ DATA_TYPE_PROPERTIES[TH_CUMULATIVE_USAGE] = { yMax: 50, decimalPlaces: 2 };
 DATA_TYPE_PROPERTIES[TH_CUMULATIVE_COST] = { yMax: 20, decimalPlaces: 2 };
 DATA_TYPE_PROPERTIES[TH_PROJECTED_USAGE] = { yMax: 10, decimalPlaces: 2 };
 DATA_TYPE_PROPERTIES[TH_PROJECTED_COST] = { yMax: 3, decimalPlaces: 2 };
+DATA_TYPE_PROPERTIES[STR_PERIOD_AVERAGE_RATE] = { yMax: 10, decimalPlaces: 3 };
 DATA_TYPE_PROPERTIES[STR_HOUR_TOTAL_USAGE] = { yMax: 10, decimalPlaces: 3 };
 DATA_TYPE_PROPERTIES[STR_HOUR_TOTAL_COST] = { yMax: 3, decimalPlaces: 2 };
 
@@ -647,16 +649,6 @@ function updateGraph()
         graph.setBarData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_PERIOD_COST], tableColumns[STR_PERIOD_TYPE], 1);
     }
 
-    if (inpGraphData.value == TH_CUMULATIVE_USAGE)
-    {
-        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_USAGE], tableColumns[STR_PERIOD_TYPE], 1);
-    }
-
-    if (inpGraphData.value == TH_CUMULATIVE_COST)
-    {
-        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_COST], tableColumns[STR_PERIOD_TYPE], 1);
-    }
-
     if (inpGraphData.value == STR_HOUR_TOTAL_USAGE)
     {
         graph.setBarData(hourTimePeriods, hourTotalUsage, hourPeriodTypes, 60);
@@ -667,7 +659,22 @@ function updateGraph()
         graph.setBarData(hourTimePeriods, hourTotalCost, hourPeriodTypes, 60);
     }
 
-    graph.update();
+    if (inpGraphData.value == STR_PERIOD_AVERAGE_RATE)
+    {
+        graph.setBarData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_PROJECTED_USAGE], tableColumns[STR_PERIOD_TYPE], 1);
+    }
+
+    if (inpGraphData.value == TH_CUMULATIVE_USAGE)
+    {
+        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_USAGE], tableColumns[STR_PERIOD_TYPE], 1);
+    }
+
+    if (inpGraphData.value == TH_CUMULATIVE_COST)
+    {
+        graph.setLineData(tableColumns[TH_TIME_PERIOD], tableColumns[TH_CUMULATIVE_COST], tableColumns[STR_PERIOD_TYPE], 1);
+    }
+
+    graph.draw();
 }
 
 function updateDownloadLink(filename)
