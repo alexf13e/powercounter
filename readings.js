@@ -1,17 +1,19 @@
 
-const dvTable = document.getElementById("dvTable");
 const aSaveFile = document.getElementById("aSaveFile");
+const inpDate = document.getElementById("inpDate");
+const btnDateLeft = document.getElementById("btnDateLeft");
+const btnDateRight = document.getElementById("btnDateRight");
+const btnToggleGraph = document.getElementById("btnToggleGraph");
+const inpGraphData = document.getElementById("inpGraphData");
 const inpUnitCostDay = document.getElementById("inpUnitCostDay");
 const inpUnitCostNight = document.getElementById("inpUnitCostNight");
 const inpStandingCharge = document.getElementById("inpStandingCharge");
-const inpEnableNightRate = document.getElementById("inpEnableNightRate");
-const inpEnableChargeTimes = document.getElementById("inpEnableChargeTimes");
 const inpNightRateStart = document.getElementById("inpNightRateStart");
 const inpNightRateEnd = document.getElementById("inpNightRateEnd");
-const inpDate = document.getElementById("inpDate");
+const inpEnableNightRate = document.getElementById("inpEnableNightRate");
+const inpEnableChargeTimes = document.getElementById("inpEnableChargeTimes");
 const dvGraph = document.getElementById("dvGraph");
-const btnToggleGraph = document.getElementById("btnToggleGraph");
-const inpGraphData = document.getElementById("inpGraphData");
+const dvTable = document.getElementById("dvTable");
 
 let validFileDates = [];
 let tableColumns = {};
@@ -97,6 +99,50 @@ window.addEventListener("load", async () => {
     await reloadMostRecentFile();
 });
 
+inpDate.addEventListener("change", async () => {
+    onLogDateChanged();
+});
+
+btnDateLeft.addEventListener("click", async() => {
+    let date = new Date(inpDate.value);
+    date.setDate(date.getDate() - 1);
+    inpDate.value = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + date.getDate().toString().padStart(2, "0");
+    onLogDateChanged();
+});
+
+btnDateRight.addEventListener("click", async() => {
+    let date = new Date(inpDate.value);
+    date.setDate(date.getDate() + 1);
+    inpDate.value = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + date.getDate().toString().padStart(2, "0");
+    onLogDateChanged();
+});
+
+btnToggleGraph.addEventListener("click", () => {
+    if (!showGraph)
+    {
+        rememberedScrollHeight = window.scrollY;
+    }
+
+    showGraph = !showGraph;
+    btnToggleGraph.innerHTML = showGraph ? "Show table" : "Show graph";
+    updateGraphVisibility();
+
+    if (!showGraph && rememberedScrollHeight != null)
+    {
+        window.scrollTo(0, rememberedScrollHeight);
+    }
+});
+
+inpGraphData.addEventListener("change", () => {
+    graph.setYAxisRange(DATA_TYPE_PROPERTIES[inpGraphData.value].yMax);
+    graph.setYDecimalPlaces(DATA_TYPE_PROPERTIES[inpGraphData.value].decimalPlaces);
+
+    if (!forceHideGraph)
+    {
+        updateGraph();
+    }
+});
+
 inpUnitCostDay.addEventListener("change", () => {
     if (inpUnitCostDay.value == "") inpUnitCostDay.value = 0;
     updateCosts(true);
@@ -140,54 +186,6 @@ inpEnableNightRate.addEventListener("change", () => {
 inpEnableChargeTimes.addEventListener("change", () => {
     updateCosts(true);
     setLocalStorage("enableChargeTimes", inpEnableChargeTimes.checked);
-});
-
-inpDate.addEventListener("change", async () => {
-    clearTimeout(reloadFileTimeout);
-    let filename = inpDate.value + ".csv";
-
-    if (inpDate.value == validFileDates[0])
-    {
-        await reloadMostRecentFile();
-    }
-    else if (validFileDates.includes(inpDate.value))
-    {
-        await loadNewFile(filename);
-    }
-    else
-    {
-        showError(filename + " does not exist");
-        updateDownloadLink("");
-        forceHideGraph = true;
-        updateGraphVisibility();
-        graph.clear();
-    }
-});
-
-btnToggleGraph.addEventListener("click", () => {
-    if (!showGraph)
-    {
-        rememberedScrollHeight = window.scrollY;
-    }
-
-    showGraph = !showGraph;
-    btnToggleGraph.innerHTML = showGraph ? "Show table" : "Show graph";
-    updateGraphVisibility();
-
-    if (!showGraph && rememberedScrollHeight != null)
-    {
-        window.scrollTo(0, rememberedScrollHeight);
-    }
-});
-
-inpGraphData.addEventListener("change", () => {
-    graph.setYAxisRange(DATA_TYPE_PROPERTIES[inpGraphData.value].yMax);
-    graph.setYDecimalPlaces(DATA_TYPE_PROPERTIES[inpGraphData.value].decimalPlaces);
-
-    if (!forceHideGraph)
-    {
-        updateGraph();
-    }
 });
 
 
@@ -345,6 +343,29 @@ function initHourlyTotals()
 
         let time = h.toString().padStart(2, "0") + ":00";
         hourTimePeriods.push(time);
+    }
+}
+
+async function onLogDateChanged()
+{
+    clearTimeout(reloadFileTimeout);
+    let filename = inpDate.value + ".csv";
+
+    if (inpDate.value == validFileDates[0])
+    {
+        await reloadMostRecentFile();
+    }
+    else if (validFileDates.includes(inpDate.value))
+    {
+        await loadNewFile(filename);
+    }
+    else
+    {
+        showError(filename + " does not exist");
+        updateDownloadLink("");
+        forceHideGraph = true;
+        updateGraphVisibility();
+        graph.clear();
     }
 }
 
