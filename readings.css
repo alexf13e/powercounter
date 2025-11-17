@@ -133,12 +133,18 @@ tr:hover
     aspect-ratio: 16/9;
 }
 
-#dvGraphData
+#dvGraphInputs
+{
+    display: none;
+    grid-template-columns: 1fr;
+    gap: 5px 0;
+}
+
+#dvGraphInputs > span
 {
     display: grid;
-    grid-template-columns: 2fr 3fr;
-
-    margin-bottom: 10px;
+    grid-template-columns: 3fr 1fr;
+    gap: 5px 0;
 }
 
 #dvHideTop
@@ -157,11 +163,27 @@ tr:hover
     display: grid;
     grid-template-columns: 3fr 1fr;
     gap: 5px 0;
+    margin-bottom: 20px;
 }
 
 #dvInputs > input
 {
     width: 5em;
+}
+
+#pGraphDataEquation
+{
+    font-family: monospace;
+}
+
+#pHoverInfo
+{
+    display: none;
+    position: fixed;
+    margin: 0;
+    padding: 2px;
+    background-color: white;
+    pointer-events: none;
 }
 
 .saveFileShown

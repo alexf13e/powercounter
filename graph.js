@@ -3,12 +3,18 @@ let resizeTimeout;
 
 class Graph
 {
-    constructor(container)
+    constructor(enableValueOnHover, container)
     {
         this.DEFAULT_VIEW_WIDTH = 1440; //for each minute in the day to be 1 pixel wide
         this.AXIS_FONT_SIZE = "8mm";
 
+        this.enableValueOnHover = enableValueOnHover;
+        this.hoverValueUnit = "";
+
         this.yDecimalPlaces = 3;
+
+        this.xValueToTimePeriod = new Int32Array(1440);
+        this.timePeriodToYValue = {};
 
         this.container = container
         this.plot = document.createElement("canvas");
@@ -35,6 +41,9 @@ class Graph
         ];
         wgl_setColours(new Float32Array(colours));
 
+        this.pHoverInfo = document.createElement("p");
+        this.pHoverInfo.id = "pHoverInfo";
+        document.body.appendChild(this.pHoverInfo);
 
         this.container.addEventListener("mousedown", (e) => this.mouseDown(e));
         window.addEventListener("mouseup", (e) => this.mouseUp(e)); //events on window so can still drag when cursor leaves graph area
@@ -112,14 +121,41 @@ class Graph
         this.yAxisCtx.font = this.AXIS_FONT_SIZE + " sans-serif";
     }
 
-    setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes)
+    updateDataLookups(timePeriods, yValues, periodDurationMinutes)
     {
-        wgl_setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes);
+        let x = 0;
+        while (x < this.xValueToTimePeriod.length)
+        {
+            let t = Math.floor(x / 60) * 100 + x % 60;
+
+            for (let actualX = x; actualX < x + periodDurationMinutes; actualX++)
+            {
+                this.xValueToTimePeriod[actualX] = t;
+            }
+
+            x += periodDurationMinutes;
+        }
+
+        for (let i = 0; i < timePeriods.length; i++)
+        {
+            let parts = timePeriods[i].split(":");
+            let time = parts[0] + parts[1];
+            this.timePeriodToYValue[time] = yValues[i];
+        }
     }
 
-    setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes)
+    setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes, hoverValueUnit)
+    {
+        wgl_setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes);
+        this.updateDataLookups(timePeriods, yValues, periodDurationMinutes);
+        this.hoverValueUnit = hoverValueUnit;
+    }
+
+    setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes, hoverValueUnit)
     {
         wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes);
+        this.updateDataLookups(timePeriods, yValues, periodDurationMinutes);
+        this.hoverValueUnit = hoverValueUnit;
     }
 
     setYAxisRange(yMax)
@@ -263,15 +299,63 @@ class Graph
     {
         var currentMouse = { x: event.x, y: event.y };
 
+        let currentMouseWorld = this.screenToGraphPos(currentMouse);
+
         if (this.mouseHeld)
         {
-            let currentMouseWorld = this.screenToGraphPos(currentMouse);
             let prevMouseWorld = this.screenToGraphPos(this.prevMousePos);
 
             let delta = { x: currentMouseWorld.x - prevMouseWorld.x, y: currentMouseWorld.y - prevMouseWorld.y };
             this.panView(delta);
             this.restrictView();
             this.draw();
+        }
+
+        if (this.enableValueOnHover)
+        {
+            let plotRect = this.plot.getBoundingClientRect();
+            if (currentMouse.x > plotRect.left && currentMouse.x < plotRect.right && currentMouse.y > plotRect.top && currentMouse.y < plotRect.bottom)
+            {
+                let intX = Math.floor(currentMouseWorld.x);
+                let intTimePeriod = this.xValueToTimePeriod[intX];
+                let hour = Math.floor(intTimePeriod / 100);
+                let minute = intTimePeriod % 100;
+                let timeLookup = hour.toString().padStart(2, "0") + minute.toString().padStart(2, "0");
+
+                let value;
+                if (timeLookup in this.timePeriodToYValue)
+                {
+                    if (this.hoverValueUnit == "£")
+                    {
+                        value = this.hoverValueUnit + this.timePeriodToYValue[timeLookup].toFixed(this.yDecimalPlaces);
+                    }
+                    else
+                    {
+                        value = this.timePeriodToYValue[timeLookup].toFixed(this.yDecimalPlaces) + this.hoverValueUnit;
+                    }
+                }
+                else
+                {
+                    value = "no data";
+                }
+                
+                
+                let timeString = hour.toString().padStart(2, "0") + ":" + minute.toString().padStart(2, "0");
+                
+                this.pHoverInfo.style.display = "block";
+                this.pHoverInfo.style.position = "absolute";
+                this.pHoverInfo.style.left = `${currentMouse.x + 5}px`;
+                this.pHoverInfo.style.top = `${currentMouse.y - 25}px`;
+                this.pHoverInfo.innerHTML = timeString + " = " + value;
+            }
+            else
+            {
+                this.pHoverInfo.style.display = "none";
+            }
+        }
+        else
+        {
+            this.pHoverInfo.style.display = "none";
         }
 
         this.prevMousePos = currentMouse;

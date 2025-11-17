@@ -23,11 +23,6 @@
             <button id="btnDateLeft">⬅️</button>
             <button id="btnDateRight">➡️</button>
         </div>
-        <button id="btnToggleGraph">Show graph</button>
-        <div id="dvGraphData">
-            <label for="inpGraphData">Graph data</label>
-            <select id="inpGraphData"></select>
-        </div>
         <div id="dvInputs">
             <label for="inpUnitCostDay">Day Pence per kWh</label>
             <input id="inpUnitCostDay" type="number" value="28.96" min="0" step="0.01">
@@ -40,9 +35,19 @@
             <label for="inpNightRateEnd">Night rate end time</label>
             <input id="inpNightRateEnd" type="time" value="05:30">
             <label for="inpEnableNightRate">Enable night rate</label>
-            <input id="inpEnableNightRate" type="checkbox" checked="true">
+            <input id="inpEnableNightRate" type="checkbox" checked>
             <label for="inpEnableChargeTimes">Enable charge times</label>
-            <input id="inpEnableChargeTimes" type="checkbox" checked="true">
+            <input id="inpEnableChargeTimes" type="checkbox" checked>
+        </div>
+        <button id="btnToggleGraph">Show graph</button>
+        <div id="dvGraphInputs">
+            <select id="inpGraphData"></select>
+            <span>
+                <label for="inpEnableGraphValueOnHover">Show value on hover</label>
+                <input id="inpEnableGraphValueOnHover" type="checkbox">
+            </span>
+            <p id="pGraphDataDescription"></p>
+            <p id="pGraphDataEquation"></p>
         </div>
     </div>
     <div id="dvTable"></div>
