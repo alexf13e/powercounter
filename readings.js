@@ -755,7 +755,7 @@ function updateDownloadLink(filename)
     {
         aSaveFile.classList.remove("saveFileHidden");
         aSaveFile.classList.add("saveFileShown");
-        aSaveFile.href = "/logs/" + filename;
+        aSaveFile.href = "logs/" + filename;
     }
 }
 
