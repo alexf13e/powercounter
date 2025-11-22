@@ -82,7 +82,7 @@ class Graph
 
 
         this.viewWindow = { x1: 0, y1: 0, x2: this.DEFAULT_VIEW_WIDTH, y2: this.yMax };
-        
+
         this.zoomX = 1;
         this.zoomY = 1;
         this.maxZoom = 48;
@@ -136,6 +136,7 @@ class Graph
             x += periodDurationMinutes;
         }
 
+        this.timePeriodToYValue = {};
         for (let i = 0; i < timePeriods.length; i++)
         {
             let parts = timePeriods[i].split(":");
@@ -181,7 +182,7 @@ class Graph
             this.zoomX = Math.max(Math.min(this.zoomX, this.maxZoom), 1);
             this.viewWindow.x2 = this.viewWindow.x1 + this.DEFAULT_VIEW_WIDTH / this.zoomX;
         }
-        
+
         if (this.mouseTarget == this.plot || this.mouseTarget == this.yAxis)
         {
             this.zoomY *= Math.pow(1.25, amount);
@@ -254,10 +255,10 @@ class Graph
     graphToScreenPos(p)
     {
         //reverse of screen to graph
-    
+
         //position in canvas pixels relative to canvas top left
         let c = this.graphToCanvasPos(p);
-        
+
         let bounds = this.plot.getBoundingClientRect();
         let cpvx = this.plot.width / bounds.width;
         let cpvy = this.plot.height / bounds.height;
@@ -272,10 +273,10 @@ class Graph
     graphToCanvasPos(p)
     {
         //p is position in graph space relative to graph origin
-        
+
         //g is graph space position relative to view window bottom left corner
         let g = { x: p.x - this.viewWindow.x1, y: p.y - this.viewWindow.y1 };
-        
+
         let gpcx = (this.viewWindow.x2 - this.viewWindow.x1) / this.plot.width;
         let gpcy = (this.viewWindow.y2 - this.viewWindow.y1) / this.plot.height;
 
@@ -338,10 +339,10 @@ class Graph
                 {
                     value = "no data";
                 }
-                
-                
+
+
                 let timeString = hour.toString().padStart(2, "0") + ":" + minute.toString().padStart(2, "0");
-                
+
                 this.pHoverInfo.style.display = "block";
                 this.pHoverInfo.style.position = "absolute";
                 this.pHoverInfo.style.left = `${currentMouse.x + 5}px`;
@@ -374,7 +375,7 @@ class Graph
         //so cap the max zoom amount so that it takes at least a few scroll clicks to reach max zoom no matter the
         //scroll method.
         const zoomMag = Math.min(Math.abs(event.deltaY * sens), 1);
-        
+
         //deltaY is positive for scroll down, which should zoom out. zooming out is considered a negative direction by zoom code.
         const zoomDir = -Math.sign(event.deltaY);
 
