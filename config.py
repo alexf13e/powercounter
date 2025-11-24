@@ -2,7 +2,7 @@
 import pytz
 
 # where the root folder of the project is
-ROOT_DIR = "/home/pi/powercounter"
+ROOT_DIR = "/home/pi/web/powercounter"
 
 # time period for each recording of power consumption
 READING_INTERVAL_MINUTES = 1

@@ -37,8 +37,13 @@ headers = {
 }
 
 response = requests.post(URL, json={'query': m_obtainKrakenToken}, headers=headers)
-response_json = response.json()
+if not response.ok:
+    print("error getting kraken token: ")
+    print(response.text)
+    exit()
 
+
+response_json = response.json()
 if "errors" in response_json:
     print("error getting kraken token: ")
     print_JSON(response_json)
@@ -66,8 +71,12 @@ headers = {
 }
 
 response = requests.post(URL, json={'query': q_completedDispatches}, headers=headers)
-response_json = response.json()
+if not response.ok:
+    print("error getting completed dispatches: ")
+    print(response.text)
+    exit()
 
+response_json = response.json()
 if "errors" in response_json:
     print("error getting completed dispatches: ")
     print_JSON(response_json)
@@ -135,7 +144,7 @@ with open(charge_times_dir, "a") as f:
 #   when entering daylight savings, 1am-2am is skipped - not an issue as can just add 1 hour to UTC time
 #   when exiting daylight savings, 1am-2am is repeated - is an issue, since if octopus says 1am-2am is cheaper time,
 #   there will be 2 local hours considered to be cheap when only 1 was
-# 
+#
 # HOWEVER - 23:30 to 05:30 will always be cheap regardless of dispatches, so I have decided I don't care and we will
 # just convert octopus time to local (instead of storing UTC locally, invalidating/adjusting all existing files and
 # requiring the webpage to convert times to daylight savings when applicable and fetching readings from more than one
