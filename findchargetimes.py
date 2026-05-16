@@ -38,14 +38,14 @@ headers = {
 
 response = requests.post(URL, json={'query': m_obtainKrakenToken}, headers=headers)
 if not response.ok:
-    print("error getting kraken token: ")
+    print(f"{datetime.now().strftime('%H:%:M%S')}:error getting kraken token: ")
     print(response.text)
     exit()
 
 
 response_json = response.json()
 if "errors" in response_json:
-    print("error getting kraken token: ")
+    print(f"{datetime.now().strftime('%H:%:M%S')}: error getting kraken token: ")
     print_JSON(response_json)
     exit()
 
@@ -72,13 +72,13 @@ headers = {
 
 response = requests.post(URL, json={'query': q_completedDispatches}, headers=headers)
 if not response.ok:
-    print("error getting completed dispatches: ")
+    print(f"{datetime.now().strftime('%H:%:M%S')}:error getting completed dispatches: ")
     print(response.text)
     exit()
 
 response_json = response.json()
 if "errors" in response_json:
-    print("error getting completed dispatches: ")
+    print(f"{datetime.now().strftime('%H:%:M%S')}:error getting completed dispatches: ")
     print_JSON(response_json)
     exit()
 

@@ -693,8 +693,8 @@ function updateTable()
         table.appendChild(tr);
     }
 
-    trMin.classList.add("trMin");
-    trMax.classList.add("trMax");
+    if (trMin != undefined) trMin.classList.add("trMin");
+    if (trMax != undefined) trMax.classList.add("trMax");
 
     dvTable.appendChild(table);
 

@@ -31,8 +31,10 @@ def record_count(value):
         with open(filename, "r") as f:
             lines = f.readlines()
             lastline = lines[-1]
-            lastcumulative = float(lastline.split(",")[4])
-            cumulative = lastcumulative + cumulative
+            parts = lastline.split(",")
+            if len(parts) >= 5 and parts[4] != "N/A":
+                lastcumulative = float(parts[4])
+                cumulative = lastcumulative + cumulative
 
     with open(filename, "a") as f:
         if not file_exists:
