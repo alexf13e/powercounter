@@ -16,3 +16,8 @@ TIME_ZONE = pytz.timezone("Europe/London")
 # MUST be 24 hour time with leading 0
 NIGHT_RATE_START = "23:30"
 NIGHT_RATE_END = "05:30"
+
+# settings for minimalmodbus
+MODBUS_DEVICE_PATH = "/dev/ttyACM0"
+MODBUS_SERVER_ADDRESS = 247
+MODBUS_BAUDRATE = 9600
