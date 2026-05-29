@@ -4,7 +4,7 @@
 
     <script src="wgl.js" defer></script>
     <script src="graph.js" defer></script>
-    <script src="readings.js" defer></script>
+    <script src="readings2.js" defer></script>
 
     <link rel="stylesheet" href="readings.css">
     <link rel="shortcut icon" href="lightning.png" type="image/x-icon" />
@@ -28,6 +28,8 @@
             <input id="inpUnitCostDay" type="number" value="28.96" min="0" step="0.01">
             <label for="inpUnitCostNight">Night Pence per kWh</label>
             <input id="inpUnitCostNight" type="number" value="7.00" min="0" step="0.01">
+            <label for="inpUnitCostExport">Export Pence per kWh</label>
+            <input id="inpUnitCostExport" type="number" value="15.00" min="0" step="0.01">
             <label for="inpStandingCharge">Daily standing charge (pence)</label>
             <input id="inpStandingCharge" type="number" value="47.849" min="0" step="0.01">
             <label for="inpNightRateStart">Night rate start time</label>
@@ -40,16 +42,18 @@
             <input id="inpEnableChargeTimes" type="checkbox" checked>
         </div>
         <button id="btnToggleGraph">Show graph</button>
+        <div id="dvColumnsVisible">
+            <h3>Visible Columns</h3>
+            <div id="dvColumnVisibilityInputs" class="scrollShadowVertical"></div>
+        </div>
         <div id="dvGraphInputs">
             <select id="inpGraphData"></select>
             <span>
                 <label for="inpEnableGraphValueOnHover">Show value on hover</label>
                 <input id="inpEnableGraphValueOnHover" type="checkbox">
             </span>
-            <p id="pGraphDataDescription"></p>
-            <p id="pGraphDataEquation"></p>
         </div>
     </div>
-    <div id="dvTable"></div>
+    <div id="dvTable" class="scrollShadowHorizontal"></div>
     <div id="dvGraph"></div>
 </body>
