@@ -60,7 +60,7 @@ const DTP_AVERAGE_KWH =         { yMin: 0,      yMax: 10,     decimalPlaces: 3, 
 const DTP_PERIOD_COST =         { yMin: 0,      yMax: 5,      decimalPlaces: 3,   unit: "p",      graphType: "bar"  };
 const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 5,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
 const DTP_CUMULATIVE_NET_COST = { yMin: -5,     yMax: 5,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
-const DTP_BATTERY =             { yMin: 0,      yMax: 105,    decimalPlaces: 2,   unit: "%",      graphType: "line" };
+const DTP_BATTERY =             { yMin: 0,      yMax: 100,    decimalPlaces: 2,   unit: "%",      graphType: "line" };
 const DTP_VOLTAGE =             { yMin: 0,      yMax: 300,    decimalPlaces: 1,   unit: "V",      graphType: "line" };
 
 const DATA_TYPE_PROPERTIES = {};
@@ -429,7 +429,7 @@ async function reloadMostRecentFile()
     //wait until 5 seconds past the minute to give time for file to be updated and saved
     let d = new Date();
     let timeUntilNextMinute = (60 - d.getSeconds() + 5) * 1000;
-    //reloadFileTimeout = setTimeout(reloadMostRecentFile, timeUntilNextMinute);
+    reloadFileTimeout = setTimeout(reloadMostRecentFile, timeUntilNextMinute);
 }
 
 async function createDataFromCSV(fileText)

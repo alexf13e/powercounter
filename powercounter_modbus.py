@@ -38,11 +38,11 @@ def record_values():
     cumulative_import_kwh = get_day_total_import_kwh()
     period_import_kwh = cumulative_import_kwh - prev_import_kwh
     average_import_kW = period_import_kwh * 3600 / record_interval
-    
+
     cumulative_export_kwh = get_day_total_export_kwh()
     period_export_kwh = cumulative_export_kwh - prev_export_kwh
     average_export_kW = period_export_kwh * 3600 / record_interval
-    
+
     battery_soc = get_battery_soc_kwh()
     line_voltage = get_line_voltage()
 

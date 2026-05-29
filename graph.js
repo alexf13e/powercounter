@@ -85,7 +85,7 @@ class Graph
 
         this.zoomX = 1;
         this.zoomY = 1;
-        this.maxZoom = 48;
+        this.maxZoom = 60;
         wgl_setViewWindow(this.viewWindow);
 
         this.mouseHeld = false;
@@ -176,7 +176,7 @@ class Graph
     changeZoom(amount)
     {
         let mouseBefore = this.screenToGraphPos(this.prevMousePos);
-
+        
         if (this.mouseTarget == this.plot || this.mouseTarget == this.xAxis)
         {
             this.zoomX *= Math.pow(1.25, amount);
@@ -188,7 +188,7 @@ class Graph
         {
             this.zoomY *= Math.pow(1.25, amount);
             this.zoomY = Math.max(Math.min(this.zoomY, this.maxZoom), 1);
-            this.viewWindow.y2 = this.viewWindow.y1 + this.yMax / this.zoomY;
+            this.viewWindow.y2 = this.viewWindow.y1 + (this.yMax - this.yMin) / this.zoomY;
         }
 
         let mouseAfter = this.screenToGraphPos(this.prevMousePos);
@@ -400,11 +400,12 @@ class Graph
 
     getTickIntervalY(viewHeight)
     {
-        let viewProportion = viewHeight / this.yMax;
+        const dy = this.yMax - this.yMin;
+        let viewProportion = viewHeight / dy;
 
-        if (viewProportion < 0.1) return this.yMax * 0.005;
-        if (viewProportion < 0.5) return this.yMax * 0.025;
-        return this.yMax * 0.05;
+        if (viewProportion < 0.1) return dy * 0.005;
+        if (viewProportion < 0.5) return dy * 0.025;
+        return dy * 0.05;
     }
 
     drawTickMarks()
@@ -437,7 +438,7 @@ class Graph
         this.yAxisCtx.clearRect(0, 0, this.yAxis.width, this.yAxis.height);
         this.yAxisCtx.beginPath();
             interval = this.getTickIntervalY(this.viewWindow.y2 - this.viewWindow.y1);
-            let y1 = Math.max(Math.floor(this.viewWindow.y1 / interval), 1) * interval;
+            let y1 = (Math.floor(this.viewWindow.y1 / interval) + 1) * interval;
             for (let yGraph = y1; yGraph < this.viewWindow.y2 - 0.001; yGraph += interval)
             {
                 let yCanvas = this.graphToCanvasPos({ x: 0, y: yGraph }).y;
