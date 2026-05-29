@@ -1,10 +1,8 @@
-logs/*
 .env/
 __pycache__/
+logs/*
 *.csv
-logindex.txt
-.lgd-nfy0
-run.sh
 api_secrets.py
-readings_local.html
 errorlog.txt
+.lgd-nfy0
+logindex.txt

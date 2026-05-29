@@ -81,7 +81,7 @@ class Graph
         });
 
 
-        this.viewWindow = { x1: 0, y1: 0, x2: this.DEFAULT_VIEW_WIDTH, y2: this.yMax };
+        this.viewWindow = { x1: 0, y1: this.yMin, x2: this.DEFAULT_VIEW_WIDTH, y2: this.yMax };
 
         this.zoomX = 1;
         this.zoomY = 1;
@@ -140,7 +140,7 @@ class Graph
         for (let i = 0; i < timePeriods.length; i++)
         {
             let parts = timePeriods[i].split(":");
-            let time = parts[0] + parts[1];
+            let time = parts[0] + parts[1].split(" - ")[0];
             this.timePeriodToYValue[time] = yValues[i];
         }
     }
@@ -159,10 +159,11 @@ class Graph
         this.hoverValueUnit = hoverValueUnit;
     }
 
-    setYAxisRange(yMax)
+    setYAxisRange(yMin, yMax)
     {
+        this.yMin = yMin;
         this.yMax = yMax;
-        this.viewWindow.y1 = 0;
+        this.viewWindow.y1 = yMin;
         this.viewWindow.y2 = yMax;
         this.zoomY = 1;
     }
@@ -209,7 +210,7 @@ class Graph
     {
         let delta = { x: 0, y: 0 };
         if (this.viewWindow.x1 < 0) delta.x = this.viewWindow.x1;
-        if (this.viewWindow.y1 < 0) delta.y = this.viewWindow.y1;
+        if (this.viewWindow.y1 < this.yMin) delta.y = this.viewWindow.y1 - this.yMin;
         if (this.viewWindow.x2 > this.DEFAULT_VIEW_WIDTH) delta.x = this.viewWindow.x2 - this.DEFAULT_VIEW_WIDTH;
         if (this.viewWindow.y2 > this.yMax) delta.y = this.viewWindow.y2 - this.yMax;
 
@@ -220,7 +221,7 @@ class Graph
     {
         this.zoomX = 1;
         this.zoomY = 1;
-        this.viewWindow = { x1: 0, y1: 0, x2: this.DEFAULT_VIEW_WIDTH, y2: this.yMax };
+        this.viewWindow = { x1: 0, y1: this.yMin, x2: this.DEFAULT_VIEW_WIDTH, y2: this.yMax };
     }
 
     screenToGraphPos(p)

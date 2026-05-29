@@ -119,7 +119,7 @@ function wgl_setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes
     for (let i = 0; i < numBars; i++)
     {
         const parts = timePeriods[i].split(":");
-        const time = parts[0] + parts[1];
+        const time = parts[0] + parts[1].split(" - ")[0];
         const x = timePeriodToXValue[time];
 
         //bottom left
@@ -237,7 +237,7 @@ function wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinute
     for (let i = 0; i < numLines; i++)
     {
         const parts = timePeriods[i].split(":");
-        const time = parts[0] + parts[1];
+        const time = parts[0] + parts[1].split(" - ")[0];
         const x = timePeriodToXValue[time];
 
         let y1 = (i == 0) ? 0 : yValues[i - 1];
