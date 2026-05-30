@@ -5,7 +5,7 @@ import pytz
 ROOT_DIR = "/home/pi/web/powercounter"
 
 # time period for each recording of power consumption
-READING_INTERVAL_MINUTES = 1
+READING_INTERVAL_MINUTES = 10
 
 # should be noted on the smart metre next to LED
 COUNTS_PER_KWH = 4000
