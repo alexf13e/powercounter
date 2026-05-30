@@ -780,11 +780,11 @@ function updateGraph()
 {
     if (DATA_TYPE_PROPERTIES[inpGraphData.value].graphType == "bar")
     {
-        graph.setBarData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 1, DATA_TYPE_PROPERTIES[inpGraphData.value].unit);
+        graph.setBarData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 10, DATA_TYPE_PROPERTIES[inpGraphData.value].unit);
     }
     else
     {
-        graph.setLineData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 1, DATA_TYPE_PROPERTIES[inpGraphData.value].unit);
+        graph.setLineData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 10, DATA_TYPE_PROPERTIES[inpGraphData.value].unit);
     }
 
     graph.draw();
