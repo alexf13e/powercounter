@@ -438,7 +438,7 @@ async function createDataFromCSV(fileText)
 
     let headerLine = lines[0]; //first line in csv contains column titles
     let valueLines = lines.slice(1); //remaining lines contain values
-    
+ 
     //clear table data and recreate columns
     tableColumns = {};
     let headers = headerLine.split(",");
@@ -467,7 +467,7 @@ async function createDataFromCSV(fileText)
     }
 
     tableColumns = sortedTableColumns;
-    
+
     //fill out columns
     for (let line of valueLines)
     {
@@ -562,7 +562,7 @@ function updateCosts(refreshCostGraph)
 
         let periodImportCost = tableColumns[STR_PERIOD_IMPORT_KWH][i] * importCost;
         cumulativeImportCost += periodImportCost;
-        
+
         let periodExportEarn = tableColumns[STR_PERIOD_EXPORT_KWH][i] * pencePerKWHExport;
         cumulativeExportEarn += periodExportEarn;
 
@@ -627,7 +627,9 @@ function updateTable()
         let fullyHiddenClassName = "colHiddenFully" + columnIndex.toString();
         if (columnVisibility[header] == false)
         {
+            tableHead.classList.add(hiddenClassName);
             tableHead.classList.add(fullyHiddenClassName);
+            tableContent.classList.add(hiddenClassName);
             tableContent.classList.add(fullyHiddenClassName);
         }
 
@@ -675,7 +677,7 @@ function updateTable()
             dvColumnVisibilityInputs.append(lbSetVisible);
             dvColumnVisibilityInputs.appendChild(inpSetVisible);
         }
-        
+
 
         columnIndex++;
     }

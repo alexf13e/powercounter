@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 import time
 import os
+import copy
 import minimalmodbus
 
 import config
@@ -98,8 +99,13 @@ def record_values():
 def get_seconds_until_next_record():
     delta = timedelta(minutes=config.READING_INTERVAL_MINUTES)
     now = datetime.now()
+
+    # make it so readings start on the nth minute, e.g. delta = 2 minutes, read at 0, 2, 4 etc.
+    minute_floored = (now.minute // config.READING_INTERVAL_MINUTES) * config.READING_INTERVAL_MINUTES
+    now_floored = datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=minute_floored)
+
     # record just after the minute to ensure at midnight the reading goes on the next day
-    next_record = (now + delta).replace(microsecond=0, second=3)
+    next_record = (now_floored + delta).replace(microsecond=0, second=3)
     return (next_record - now).seconds
 
 
