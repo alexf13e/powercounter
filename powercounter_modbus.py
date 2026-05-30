@@ -8,12 +8,20 @@ import config
 
 
 # https://github.com/user-attachments/files/24958455/FoxESS.Modbus.Protocol--20251215.V1.05.04.00.pdf
-def get_day_total_import_kwh():
+def get_today_import_kwh():
     return instrument.read_long(registeraddress=39619, functioncode=4, signed=False) / 100
 
 
-def get_day_total_export_kwh():
+def get_today_export_kwh():
     return instrument.read_long(registeraddress=39615, functioncode=4, signed=False) / 100
+
+
+def get_all_time_total_import_kwh():
+    return instrument.read_long(registeraddress=39617, functioncode=4, signed=False) / 100
+
+
+def get_all_time_total_export_kwh():
+    return instrument.read_long(registeraddress=39613, functioncode=4, signed=False) / 100
 
 
 def get_battery_soc_kwh():
@@ -26,8 +34,10 @@ def get_line_voltage():
 
 def record_values():
     global timeperiod_start
-    global prev_import_kwh
-    global prev_export_kwh
+    global prev_today_import_kwh
+    global prev_today_export_kwh
+    global prev_all_time_import_kwh
+    global prev_all_time_export_kwh
 
     timeperiod_end = datetime.now()
     filename = f"{config.ROOT_DIR}/logs/{timeperiod_start.strftime('%Y-%m-%d')}.csv"
@@ -35,25 +45,46 @@ def record_values():
     display_period = f"{timeperiod_start.strftime('%H:%M')} - {timeperiod_end.strftime('%H:%M')}"
     timeperiod_start = timeperiod_end
 
-    cumulative_import_kwh = get_day_total_import_kwh()
-    period_import_kwh = cumulative_import_kwh - prev_import_kwh
-    average_import_kW = period_import_kwh * 3600 / record_interval
+    today_import_kwh = get_today_import_kwh()
+    all_time_import_kwh = get_all_time_total_import_kwh()
+    period_import_kwh = all_time_import_kwh - prev_all_time_import_kwh
 
-    cumulative_export_kwh = get_day_total_export_kwh()
-    period_export_kwh = cumulative_export_kwh - prev_export_kwh
-    average_export_kW = period_export_kwh * 3600 / record_interval
+    today_export_kwh = get_today_export_kwh()
+    all_time_export_kwh = get_all_time_total_export_kwh()
+    period_export_kwh = all_time_export_kwh - prev_all_time_export_kwh
 
     battery_soc = get_battery_soc_kwh()
     line_voltage = get_line_voltage()
 
-    prev_import_kwh = cumulative_import_kwh
-    prev_export_kwh = cumulative_export_kwh
+    # deal with awkwardness of daily counter resetting just before taking the reading.
+    # want final values of the day to only include until the last moment of the day, not the few seconds of the next day
+    # that happen just before taking reading.
+    if timeperiod_end.hour == 0 and timeperiod_end.minute == 0:
+        period_import_kwh -= today_import_kwh
+        period_export_kwh -= today_export_kwh
+        today_import_kwh = prev_today_import_kwh + period_import_kwh
+        today_export_kwh = prev_today_export_kwh + period_export_kwh
+
+    # after doing the above, the first few seconds of period usage would be lost. set the first period usage to be the
+    # whole day's until the first reading
+    if timeperiod_start.hour == 0 and timeperiod_start.minute == 0:
+        period_import_kwh = today_import_kwh
+        period_export_kwh = today_export_kwh
+
+    average_import_kW = period_import_kwh * 3600 / record_interval
+    average_export_kW = period_export_kwh * 3600 / record_interval
+
+
+    prev_today_import_kwh = today_import_kwh
+    prev_today_export_kwh = today_export_kwh
+    prev_all_time_import_kwh = all_time_import_kwh
+    prev_all_time_export_kwh = all_time_export_kwh
 
     file_exists = os.path.isfile(filename)
     with open(filename, "a") as f:
         if not file_exists:
             f.write("time period,import kWh,cumulative import kWh,average import kW,export kWh,cumulative export kWh,average export kW,battery charge %,line voltage V\n")
-        f.write(f"{display_period},{period_import_kwh},{cumulative_import_kwh},{average_import_kW},{period_export_kwh},{cumulative_export_kwh},{average_export_kW},{battery_soc},{line_voltage}\n")
+        f.write(f"{display_period},{period_import_kwh},{today_import_kwh},{average_import_kW},{period_export_kwh},{today_export_kwh},{average_export_kW},{battery_soc},{line_voltage}\n")
 
     if not file_exists:
         # file has just been created, so update log list file
@@ -76,8 +107,11 @@ instrument = minimalmodbus.Instrument(config.MODBUS_DEVICE_PATH, config.MODBUS_S
 instrument.serial.baudrate = config.MODBUS_BAUDRATE
 
 timeperiod_start = datetime.now()
-prev_import_kwh = get_day_total_import_kwh()
-prev_export_kwh = get_day_total_export_kwh()
+prev_today_import_kwh = get_today_import_kwh()
+prev_today_export_kwh = get_today_export_kwh()
+prev_all_time_import_kwh = get_all_time_total_import_kwh()
+prev_all_time_export_kwh = get_all_time_total_export_kwh()
+
 
 try:
     while True:

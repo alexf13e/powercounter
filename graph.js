@@ -36,8 +36,8 @@ class Graph
 
         let colours = [
             0.2, 0.7, 0.9, 1.0, //normal
+            0.125, 0.125, 0.5, 1.0, //night
             0.5647, 0.9333, 0.5647, 1.0, //charging
-            0.125, 0.125, 0.5, 1.0 //night
         ];
         wgl_setColours(new Float32Array(colours));
 
