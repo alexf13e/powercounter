@@ -55,11 +55,10 @@ const TABLE_COLUMN_ORDER = [STR_TIME_PERIOD, STR_PERIOD_IMPORT_KWH, STR_CUMULATI
 //additional properties for each data type used when displaying their values
 const DTP_PERIOD_KWH =          { yMin: 0,      yMax: 0.2,    decimalPlaces: 3,   unit: "kWh",    graphType: "bar"  };
 const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 50,     decimalPlaces: 2,   unit: "kWh",    graphType: "line" };
-const DTP_CUMULATIVE_NET_KWH =  { yMin: -50,    yMax: 50,     decimalPlaces: 2,   unit: "kWh",    graphType: "line" };
 const DTP_AVERAGE_KWH =         { yMin: 0,      yMax: 10,     decimalPlaces: 3,   unit: "kW",     graphType: "bar"  };
 const DTP_PERIOD_COST =         { yMin: 0,      yMax: 5,      decimalPlaces: 3,   unit: "p",      graphType: "bar"  };
 const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 5,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
-const DTP_CUMULATIVE_NET_COST = { yMin: -5,     yMax: 5,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
+const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 5,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
 const DTP_BATTERY =             { yMin: 0,      yMax: 100,    decimalPlaces: 2,   unit: "%",      graphType: "line" };
 const DTP_VOLTAGE =             { yMin: 0,      yMax: 300,    decimalPlaces: 1,   unit: "V",      graphType: "line" };
 
@@ -628,8 +627,8 @@ function updateTable()
         let fullyHiddenClassName = "colHiddenFully" + columnIndex.toString();
         if (columnVisibility[header] == false)
         {
-            tableHead.classList.add(hiddenClassName);
-            tableContent.classList.add(hiddenClassName);
+            tableHead.classList.add(fullyHiddenClassName);
+            tableContent.classList.add(fullyHiddenClassName);
         }
 
         if (header != STR_TIME_PERIOD && header != STR_PERIOD_TYPE)
