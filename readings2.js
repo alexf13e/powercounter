@@ -537,10 +537,10 @@ function isCharging(time)
     //check if time was during a charging period
     if (inpDate.value in chargeTimes)
     {
-        let dateAndTime = inpDate.value + "_" + time;
+        let dateAndTime = inpDate.value + "_" + time + ":00";
         for (let chargeTime of chargeTimes[inpDate.value])
         {
-            if (chargeTime.start < dateAndTime && dateAndTime < chargeTime.end)
+            if (chargeTime.start <= dateAndTime && dateAndTime < chargeTime.end)
             {
                 return true;
             }
