@@ -3,7 +3,11 @@ body
 {
     font-family: arial;
     font-size: 13px;
-    margin-top: 0;
+}
+
+input[type=number]
+{
+    appearance: textfield;
 }
 
 label
@@ -18,38 +22,43 @@ table
     width: fit-content;
 }
 
-thead
+th, td
 {
-    position: sticky;
-    inset-block-start: 0;
-    top: 8px;
+    text-align: center;
+    width: 8em;
+    transition-property: width, font-size;
+    transition-duration: 0.3s;
 }
 
 th
 {
-    text-align: center;
+    background-color: white;
     border-bottom: solid black 1px;
-    width: 12em;
-    transition-property: width, font-size;
-    transition-duration: 0.3s;
 }
 
-td
+th:first-child
 {
-    text-align: center;
-    width: 12em;
-    transition-property: width, font-size;
-    transition-duration: 0.3s;
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    border-right: solid black 1px;
 }
 
-table td + td
+thead th
 {
-    border-left: solid black 1px;
+    position: sticky;
+    top: 0;
 }
 
-table th + th
+tr th
 {
-    border-left: solid black 1px;
+    border-bottom: none;
+    font-weight: normal;
+}
+
+thead th:first-child
+{
+    z-index: 3;
 }
 
 tr:hover
@@ -85,29 +94,17 @@ tr:hover
     grid-area: a;
 }
 
-#dvColumnsVisible
-{
-    display: contents;
-}
-
 #dvColumnVisibilityInputs
 {
     display: grid;
-    grid-template-columns: 3fr 1fr;
+    grid-template-columns: 7fr 1fr;
     gap: 5px 0;
-    overflow: auto;
-}
-
-#dvColumnVisibilityInputs > input
-{
-    width: 5em;
 }
 
 #dvDate
 {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 1%;
+    display: flex;
+    gap: 0 5px;
     margin-bottom: 20px;
 }
 
@@ -118,11 +115,8 @@ tr:hover
     grid-template-rows: 8fr 1fr;
     grid-template-areas: "a b"
                          "c d";
-    position: absolute;
-    width: 70%;
-    left: 20%;
-    top: 8px;
     aspect-ratio: 16/9;
+    width: calc(100vh/9*16);
 }
 
 #dvGraphInputs
@@ -139,17 +133,6 @@ tr:hover
     gap: 5px 0;
 }
 
-#dvHideTop
-{
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 8px;
-    width: 100%;
-    background-color: white;
-    z-index: 100;
-}
-
 #dvInputs
 {
     display: grid;
@@ -160,18 +143,18 @@ tr:hover
 
 #dvInputs > input
 {
-    width: 5em;
+    width: calc(100% - 8px);
+    height: fit-content;
 }
 
 #dvLeft
 {
+    width: 16em;
     display: flex;
     flex-direction: column;
-    position: fixed;
-    inset-block-start: 0;
-    top: 8px;
-    max-width: 15%;
-    height: 95%;
+    overflow: auto;
+    flex-shrink: 0;
+    height: 100%;
 }
 
 #dvLeft > a
@@ -180,22 +163,22 @@ tr:hover
     width: fit-content;
 }
 
-#dvTable
+#dvPageContainer
 {
     display: flex;
-    flex-direction: column;
-    position: absolute;
-    width: 70%;
-    height: 95%;
-    left: 20%;
-    top: 8px;
-    overflow-x: auto;
+    align-items: start;
+    height: calc(100vh - 16px);
 }
 
-#dvTableContent
+#dvTable
 {
-    overflow-y: auto;
-    width: fit-content;
+    overflow-x: auto;
+    height: 100%;
+}
+
+#inpDate
+{
+    flex-grow: 1;
 }
 
 #pGraphDataEquation
@@ -278,94 +261,94 @@ tr:hover
 
 
 /* this is awful */
-#dvTableHead table.colHidden1  thead th:nth-child(1),
-#dvTableHead table.colHidden2  thead th:nth-child(2),
-#dvTableHead table.colHidden3  thead th:nth-child(3),
-#dvTableHead table.colHidden4  thead th:nth-child(4),
-#dvTableHead table.colHidden5  thead th:nth-child(5),
-#dvTableHead table.colHidden6  thead th:nth-child(6),
-#dvTableHead table.colHidden7  thead th:nth-child(7),
-#dvTableHead table.colHidden8  thead th:nth-child(8),
-#dvTableHead table.colHidden9  thead th:nth-child(9),
-#dvTableHead table.colHidden10 thead th:nth-child(10),
-#dvTableHead table.colHidden11 thead th:nth-child(11),
-#dvTableHead table.colHidden12 thead th:nth-child(12),
-#dvTableHead table.colHidden13 thead th:nth-child(13),
-#dvTableHead table.colHidden14 thead th:nth-child(14),
-#dvTableHead table.colHidden15 thead th:nth-child(15),
-#dvTableHead table.colHidden16 thead th:nth-child(16),
-#dvTableHead table.colHidden17 thead th:nth-child(17),
-#dvTableHead table.colHidden18 thead th:nth-child(18),
-#dvTableHead table.colHidden19 thead th:nth-child(19),
-#dvTableHead table.colHidden20 thead th:nth-child(20),
+table.colHidden1  thead th:nth-child(1),
+table.colHidden2  thead th:nth-child(2),
+table.colHidden3  thead th:nth-child(3),
+table.colHidden4  thead th:nth-child(4),
+table.colHidden5  thead th:nth-child(5),
+table.colHidden6  thead th:nth-child(6),
+table.colHidden7  thead th:nth-child(7),
+table.colHidden8  thead th:nth-child(8),
+table.colHidden9  thead th:nth-child(9),
+table.colHidden10 thead th:nth-child(10),
+table.colHidden11 thead th:nth-child(11),
+table.colHidden12 thead th:nth-child(12),
+table.colHidden13 thead th:nth-child(13),
+table.colHidden14 thead th:nth-child(14),
+table.colHidden15 thead th:nth-child(15),
+table.colHidden16 thead th:nth-child(16),
+table.colHidden17 thead th:nth-child(17),
+table.colHidden18 thead th:nth-child(18),
+table.colHidden19 thead th:nth-child(19),
+table.colHidden20 thead th:nth-child(20),
 
-div#dvTableContent table.colHidden1  tr td:nth-child(1),
-div#dvTableContent table.colHidden2  tr td:nth-child(2),
-div#dvTableContent table.colHidden3  tr td:nth-child(3),
-div#dvTableContent table.colHidden4  tr td:nth-child(4),
-div#dvTableContent table.colHidden5  tr td:nth-child(5),
-div#dvTableContent table.colHidden6  tr td:nth-child(6),
-div#dvTableContent table.colHidden7  tr td:nth-child(7),
-div#dvTableContent table.colHidden8  tr td:nth-child(8),
-div#dvTableContent table.colHidden9  tr td:nth-child(9),
-div#dvTableContent table.colHidden10 tr td:nth-child(10),
-div#dvTableContent table.colHidden11 tr td:nth-child(11),
-div#dvTableContent table.colHidden12 tr td:nth-child(12),
-div#dvTableContent table.colHidden13 tr td:nth-child(13),
-div#dvTableContent table.colHidden14 tr td:nth-child(14),
-div#dvTableContent table.colHidden15 tr td:nth-child(15),
-div#dvTableContent table.colHidden16 tr td:nth-child(16),
-div#dvTableContent table.colHidden17 tr td:nth-child(17),
-div#dvTableContent table.colHidden18 tr td:nth-child(18),
-div#dvTableContent table.colHidden19 tr td:nth-child(19),
-div#dvTableContent table.colHidden20 tr td:nth-child(20)
+table.colHidden1  tr td:nth-child(1),
+table.colHidden2  tr td:nth-child(2),
+table.colHidden3  tr td:nth-child(3),
+table.colHidden4  tr td:nth-child(4),
+table.colHidden5  tr td:nth-child(5),
+table.colHidden6  tr td:nth-child(6),
+table.colHidden7  tr td:nth-child(7),
+table.colHidden8  tr td:nth-child(8),
+table.colHidden9  tr td:nth-child(9),
+table.colHidden10 tr td:nth-child(10),
+table.colHidden11 tr td:nth-child(11),
+table.colHidden12 tr td:nth-child(12),
+table.colHidden13 tr td:nth-child(13),
+table.colHidden14 tr td:nth-child(14),
+table.colHidden15 tr td:nth-child(15),
+table.colHidden16 tr td:nth-child(16),
+table.colHidden17 tr td:nth-child(17),
+table.colHidden18 tr td:nth-child(18),
+table.colHidden19 tr td:nth-child(19),
+table.colHidden20 tr td:nth-child(20)
 {
     width: 0;
     font-size: 0;
 }
 
 
-#dvTableHead table.colHiddenFully1  thead th:nth-child(1),
-#dvTableHead table.colHiddenFully2  thead th:nth-child(2),
-#dvTableHead table.colHiddenFully3  thead th:nth-child(3),
-#dvTableHead table.colHiddenFully4  thead th:nth-child(4),
-#dvTableHead table.colHiddenFully5  thead th:nth-child(5),
-#dvTableHead table.colHiddenFully6  thead th:nth-child(6),
-#dvTableHead table.colHiddenFully7  thead th:nth-child(7),
-#dvTableHead table.colHiddenFully8  thead th:nth-child(8),
-#dvTableHead table.colHiddenFully9  thead th:nth-child(9),
-#dvTableHead table.colHiddenFully10 thead th:nth-child(10),
-#dvTableHead table.colHiddenFully11 thead th:nth-child(11),
-#dvTableHead table.colHiddenFully12 thead th:nth-child(12),
-#dvTableHead table.colHiddenFully13 thead th:nth-child(13),
-#dvTableHead table.colHiddenFully14 thead th:nth-child(14),
-#dvTableHead table.colHiddenFully15 thead th:nth-child(15),
-#dvTableHead table.colHiddenFully16 thead th:nth-child(16),
-#dvTableHead table.colHiddenFully17 thead th:nth-child(17),
-#dvTableHead table.colHiddenFully18 thead th:nth-child(18),
-#dvTableHead table.colHiddenFully19 thead th:nth-child(19),
-#dvTableHead table.colHiddenFully20 thead th:nth-child(20),
+table.colHiddenFully1  thead th:nth-child(1),
+table.colHiddenFully2  thead th:nth-child(2),
+table.colHiddenFully3  thead th:nth-child(3),
+table.colHiddenFully4  thead th:nth-child(4),
+table.colHiddenFully5  thead th:nth-child(5),
+table.colHiddenFully6  thead th:nth-child(6),
+table.colHiddenFully7  thead th:nth-child(7),
+table.colHiddenFully8  thead th:nth-child(8),
+table.colHiddenFully9  thead th:nth-child(9),
+table.colHiddenFully10 thead th:nth-child(10),
+table.colHiddenFully11 thead th:nth-child(11),
+table.colHiddenFully12 thead th:nth-child(12),
+table.colHiddenFully13 thead th:nth-child(13),
+table.colHiddenFully14 thead th:nth-child(14),
+table.colHiddenFully15 thead th:nth-child(15),
+table.colHiddenFully16 thead th:nth-child(16),
+table.colHiddenFully17 thead th:nth-child(17),
+table.colHiddenFully18 thead th:nth-child(18),
+table.colHiddenFully19 thead th:nth-child(19),
+table.colHiddenFully20 thead th:nth-child(20),
 
-div#dvTableContent table.colHiddenFully1  tr td:nth-child(1),
-div#dvTableContent table.colHiddenFully2  tr td:nth-child(2),
-div#dvTableContent table.colHiddenFully3  tr td:nth-child(3),
-div#dvTableContent table.colHiddenFully4  tr td:nth-child(4),
-div#dvTableContent table.colHiddenFully5  tr td:nth-child(5),
-div#dvTableContent table.colHiddenFully6  tr td:nth-child(6),
-div#dvTableContent table.colHiddenFully7  tr td:nth-child(7),
-div#dvTableContent table.colHiddenFully8  tr td:nth-child(8),
-div#dvTableContent table.colHiddenFully9  tr td:nth-child(9),
-div#dvTableContent table.colHiddenFully10 tr td:nth-child(10),
-div#dvTableContent table.colHiddenFully11 tr td:nth-child(11),
-div#dvTableContent table.colHiddenFully12 tr td:nth-child(12),
-div#dvTableContent table.colHiddenFully13 tr td:nth-child(13),
-div#dvTableContent table.colHiddenFully14 tr td:nth-child(14),
-div#dvTableContent table.colHiddenFully15 tr td:nth-child(15),
-div#dvTableContent table.colHiddenFully16 tr td:nth-child(16),
-div#dvTableContent table.colHiddenFully17 tr td:nth-child(17),
-div#dvTableContent table.colHiddenFully18 tr td:nth-child(18),
-div#dvTableContent table.colHiddenFully19 tr td:nth-child(19),
-div#dvTableContent table.colHiddenFully20 tr td:nth-child(20)
+table.colHiddenFully1  tr td:nth-child(1),
+table.colHiddenFully2  tr td:nth-child(2),
+table.colHiddenFully3  tr td:nth-child(3),
+table.colHiddenFully4  tr td:nth-child(4),
+table.colHiddenFully5  tr td:nth-child(5),
+table.colHiddenFully6  tr td:nth-child(6),
+table.colHiddenFully7  tr td:nth-child(7),
+table.colHiddenFully8  tr td:nth-child(8),
+table.colHiddenFully9  tr td:nth-child(9),
+table.colHiddenFully10 tr td:nth-child(10),
+table.colHiddenFully11 tr td:nth-child(11),
+table.colHiddenFully12 tr td:nth-child(12),
+table.colHiddenFully13 tr td:nth-child(13),
+table.colHiddenFully14 tr td:nth-child(14),
+table.colHiddenFully15 tr td:nth-child(15),
+table.colHiddenFully16 tr td:nth-child(16),
+table.colHiddenFully17 tr td:nth-child(17),
+table.colHiddenFully18 tr td:nth-child(18),
+table.colHiddenFully19 tr td:nth-child(19),
+table.colHiddenFully20 tr td:nth-child(20)
 {
     display: none;
 }

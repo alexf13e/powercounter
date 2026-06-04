@@ -12,29 +12,27 @@
     <title>Power Usage</title>
 </head>
 <body>
-    <div id="dvHideTop"></div>
+<div id="dvPageContainer">
     <div id="dvLeft">
         <a id="aSaveFile" class="saveFileHidden" download>Download current csv file</a>
-        <a href="monthtotals.csv" download>Download monthly totals</a>
         <a href="chargetimes.csv" download>Download charging times</a>
         <div id="dvDate">
-            <label for="inpDate">Log date</label>
             <input id="inpDate" type="date">
             <button id="btnDateLeft">⬅️</button>
             <button id="btnDateRight">➡️</button>
         </div>
         <div id="dvInputs">
-            <label for="inpUnitCostDay">Day Pence per kWh</label>
+            <label for="inpUnitCostDay">Day p/kWh</label>
             <input id="inpUnitCostDay" type="number" value="28.96" min="0" step="0.01">
-            <label for="inpUnitCostNight">Night Pence per kWh</label>
+            <label for="inpUnitCostNight">Night p/kWh</label>
             <input id="inpUnitCostNight" type="number" value="7.00" min="0" step="0.01">
-            <label for="inpUnitCostExport">Export Pence per kWh</label>
+            <label for="inpUnitCostExport">Export p/kWh</label>
             <input id="inpUnitCostExport" type="number" value="15.00" min="0" step="0.01">
-            <label for="inpStandingCharge">Daily standing charge (pence)</label>
+            <label for="inpStandingCharge">Standing charge (p)</label>
             <input id="inpStandingCharge" type="number" value="47.849" min="0" step="0.01">
-            <label for="inpNightRateStart">Night rate start time</label>
+            <label for="inpNightRateStart">Night rate start</label>
             <input id="inpNightRateStart" type="time" value="23:30">
-            <label for="inpNightRateEnd">Night rate end time</label>
+            <label for="inpNightRateEnd">Night rate end</label>
             <input id="inpNightRateEnd" type="time" value="05:30">
             <label for="inpEnableNightRate">Enable night rate</label>
             <input id="inpEnableNightRate" type="checkbox" checked>
@@ -54,6 +52,7 @@
             </span>
         </div>
     </div>
-    <div id="dvTable" class="scrollShadowHorizontal"></div>
+    <div id="dvTable"></div>
     <div id="dvGraph"></div>
+</div>
 </body>
