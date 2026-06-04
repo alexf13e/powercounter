@@ -368,6 +368,8 @@ async function loadChargeTimes()
             chargeTimes[start_date] = [chargeTime];
         }
     }
+
+    return true;
 }
 
 async function onLogDateChanged()
@@ -416,11 +418,13 @@ async function loadNewFile(filename)
 
     inpDate.value = filename.split(".")[0];
 
-    if (createDataFromCSV(text) == false) return;
+    if (createDataFromCSV(text) == false) return false;
 
     updateCosts(false);
     updateGraph();
     updateDownloadLink(filename);
+
+    return true;
 }
 
 async function reloadMostRecentFile()
@@ -444,14 +448,14 @@ async function reloadMostRecentFile()
     //reloadFileTimeout = setTimeout(reloadMostRecentFile, timeUntilNextMinute);
 }
 
-async function createDataFromCSV(fileText)
+function createDataFromCSV(fileText)
 {
     let lines = fileText.split("\n");
     if (lines.length == 0) return false;
 
     let headerLine = lines[0]; //first line in csv contains column titles
     let valueLines = lines.slice(1); //remaining lines contain values
- 
+
     //clear table data and recreate columns
     tableColumns = {};
     let headers = headerLine.split(",");
@@ -509,7 +513,7 @@ async function createDataFromCSV(fileText)
         tableColumns[STR_PERIOD_TYPE].push(PERIOD_TYPE_NORMAL);
     }
 
-    return;
+    return true;
 }
 
 function isNightRate(time)
