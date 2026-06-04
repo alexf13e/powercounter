@@ -166,6 +166,7 @@ tr:hover
 #dvPageContainer
 {
     display: flex;
+    gap: 0 10px;
     align-items: start;
     height: calc(100vh - 16px);
 }

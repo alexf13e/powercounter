@@ -51,14 +51,14 @@ const TABLE_COLUMN_ORDER = [STR_TIME_PERIOD, STR_PERIOD_IMPORT_KWH, STR_CUMULATI
 
 
 //additional properties for each data type used when displaying their values
-const DTP_PERIOD_KWH =          { yMin: 0,      yMax: 0.2,    decimalPlaces: 3,   unit: "kWh",    graphType: "bar"  };
-const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 50,     decimalPlaces: 2,   unit: "kWh",    graphType: "line" };
+const DTP_PERIOD_KWH =          { yMin: 0,      yMax: 1.5,    decimalPlaces: 3,   unit: "kWh",    graphType: "bar"  };
+const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 25,     decimalPlaces: 2,   unit: "kWh",    graphType: "line" };
 const DTP_AVERAGE_KWH =         { yMin: 0,      yMax: 10,     decimalPlaces: 3,   unit: "kW",     graphType: "bar"  };
-const DTP_PERIOD_COST =         { yMin: 0,      yMax: 5,      decimalPlaces: 3,   unit: "p",      graphType: "bar"  };
-const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 5,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
-const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 5,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
-const DTP_BATTERY =             { yMin: 0,      yMax: 100,    decimalPlaces: 2,   unit: "%",      graphType: "line" };
-const DTP_VOLTAGE =             { yMin: 0,      yMax: 300,    decimalPlaces: 1,   unit: "V",      graphType: "line" };
+const DTP_PERIOD_COST =         { yMin: 0,      yMax: 15,     decimalPlaces: 3,   unit: "p",      graphType: "bar"  };
+const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 2,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
+const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 3,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
+const DTP_BATTERY =             { yMin: 0,      yMax: 110,    decimalPlaces: 2,   unit: "%",      graphType: "line" };
+const DTP_VOLTAGE =             { yMin: 200,      yMax: 300,  decimalPlaces: 1,   unit: "V",      graphType: "line" };
 
 const DATA_TYPE_PROPERTIES = {};
 DATA_TYPE_PROPERTIES[STR_PERIOD_IMPORT_KWH] = DTP_PERIOD_KWH;
@@ -381,7 +381,14 @@ async function onLogDateChanged()
     }
     else if (validFileDates.includes(inpDate.value))
     {
-        await loadNewFile(filename);
+        if (await loadNewFile(filename) == false)
+        {
+            showError("failed to read file: " + filename);
+            updateDownloadLink("");
+            forceHideGraph = true;
+            updateGraphVisibility();
+            graph.clear();
+        }
     }
     else
     {
@@ -421,7 +428,14 @@ async function reloadMostRecentFile()
     inpDate.value = validFileDates[0];
     let currentFile = validFileDates[0] + ".csv";
 
-    await loadNewFile(currentFile);
+    if (await loadNewFile(currentFile) == false)
+    {
+        showError("failed to read file: " + filename);
+        updateDownloadLink("");
+        forceHideGraph = true;
+        updateGraphVisibility();
+        graph.clear();
+    }
 
     //set file to be automatically reloaded each minute
     //wait until 5 seconds past the minute to give time for file to be updated and saved
@@ -441,6 +455,7 @@ async function createDataFromCSV(fileText)
     //clear table data and recreate columns
     tableColumns = {};
     let headers = headerLine.split(",");
+    if (headers.length == 5) return false; //old file format no longer supported
 
     //create temporary columns before sorting
     for (let header of headers)
