@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import time
 import os
 import copy
+import termios
 import minimalmodbus
 
 import config
@@ -10,27 +11,45 @@ import config
 
 # https://github.com/user-attachments/files/24958455/FoxESS.Modbus.Protocol--20251215.V1.05.04.00.pdf
 def get_today_import_kwh():
-    return instrument.read_long(registeraddress=39619, functioncode=4, signed=False) / 100
+    try:
+        return instrument.read_long(registeraddress=39619, functioncode=4, signed=False) / 100
+    except termios.error:
+        return 0
 
 
 def get_today_export_kwh():
-    return instrument.read_long(registeraddress=39615, functioncode=4, signed=False) / 100
+    try:
+        return instrument.read_long(registeraddress=39615, functioncode=4, signed=False) / 100
+    except termios.error:
+        return 0
 
 
 def get_all_time_total_import_kwh():
-    return instrument.read_long(registeraddress=39617, functioncode=4, signed=False) / 100
+    try:
+        return instrument.read_long(registeraddress=39617, functioncode=4, signed=False) / 100
+    except termios.error:
+        return 0
 
 
 def get_all_time_total_export_kwh():
-    return instrument.read_long(registeraddress=39613, functioncode=4, signed=False) / 100
+    try:
+        return instrument.read_long(registeraddress=39613, functioncode=4, signed=False) / 100
+    except termios.error:
+        return 0
 
 
 def get_battery_soc_kwh():
-    return instrument.read_register(registeraddress=37612, number_of_decimals=0, functioncode=4, signed=False)
+    try:
+        return instrument.read_register(registeraddress=37612, number_of_decimals=0, functioncode=4, signed=False)
+    except termios.error:
+        return 0
 
 
 def get_line_voltage():
-    return instrument.read_long(registeraddress=38802, functioncode=4, signed=True) / 10
+    try:
+        return instrument.read_long(registeraddress=38802, functioncode=4, signed=True) / 10
+    except termios.error:
+        return 0
 
 
 def record_values():
