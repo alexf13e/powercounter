@@ -685,15 +685,6 @@ function updateTable()
     {
         let tr = document.createElement("tr");
 
-        if (inpEnableChargeTimes.checked && tableColumns[STR_PERIOD_TYPE][i] == PERIOD_TYPE_CHARGING)
-        {
-            tr.classList.add("tdCharging");
-        }
-        else if (inpEnableNightRate.checked && tableColumns[STR_PERIOD_TYPE][i] == PERIOD_TYPE_NIGHT)
-        {
-            tr.classList.add("tdNight");
-        }
-
         //for each column in row i, create the table elements
         for (let headerName in tableColumns)
         {
