@@ -63,7 +63,6 @@ def record_values():
     filename = f"{config.ROOT_DIR}/logs/{timeperiod_start.strftime('%Y-%m-%d')}.csv"
     record_interval = (timeperiod_end - timeperiod_start).seconds
     display_period = f"{timeperiod_start.strftime('%H:%M')} - {timeperiod_end.strftime('%H:%M')}"
-    timeperiod_start = timeperiod_end
 
     today_import_kwh = get_today_import_kwh()
     all_time_import_kwh = get_all_time_total_import_kwh()
@@ -94,11 +93,11 @@ def record_values():
     average_import_kW = period_import_kwh * 3600 / record_interval
     average_export_kW = period_export_kwh * 3600 / record_interval
 
-
     prev_today_import_kwh = today_import_kwh
     prev_today_export_kwh = today_export_kwh
     prev_all_time_import_kwh = all_time_import_kwh
     prev_all_time_export_kwh = all_time_export_kwh
+    timeperiod_start = timeperiod_end
 
     file_exists = os.path.isfile(filename)
     with open(filename, "a") as f:
