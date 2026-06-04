@@ -19,8 +19,6 @@ const inpGraphData = document.getElementById("inpGraphData");
 const inpEnableGraphValueOnHover = document.getElementById("inpEnableGraphValueOnHover");
 const dvGraph = document.getElementById("dvGraph");
 const dvTable = document.getElementById("dvTable");
-const dvTableHead = document.getElementById("dvTableHead");
-const dvTableContent = document.getElementById("dvTableContent");
 
 let validFileDates = [];
 let tableColumns = {};
@@ -402,6 +400,7 @@ async function loadNewFile(filename)
     {
         console.error(response);
         showError("failed to load csv file: " + filename);
+        updateDownloadLink("");
         return false;
     }
 
@@ -428,7 +427,7 @@ async function reloadMostRecentFile()
     //wait until 5 seconds past the minute to give time for file to be updated and saved
     let d = new Date();
     let timeUntilNextMinute = (60 - d.getSeconds() + 5) * 1000;
-    reloadFileTimeout = setTimeout(reloadMostRecentFile, timeUntilNextMinute);
+    //reloadFileTimeout = setTimeout(reloadMostRecentFile, timeUntilNextMinute);
 }
 
 async function createDataFromCSV(fileText)
@@ -596,16 +595,7 @@ function updateTable()
     //clear existing table data if there were any
     dvTable.replaceChildren();
 
-    //jump through hoops to have a sticky header with horizontal overflow
-    let dvTableHead = document.createElement("div")
-    let dvTableContent = document.createElement("div")
-
-    dvTableHead.id = "dvTableHead";
-    dvTableContent.id = "dvTableContent";
-    dvTableContent.classList.add("scrollShadowVertical");
-
-    let tableHead = document.createElement("table");
-    let tableContent = document.createElement("table");
+    let table = document.createElement("table");
     let headerRow = document.createElement("thead");
 
     dvColumnVisibilityInputs.replaceChildren();
@@ -627,10 +617,8 @@ function updateTable()
         let fullyHiddenClassName = "colHiddenFully" + columnIndex.toString();
         if (columnVisibility[header] == false)
         {
-            tableHead.classList.add(hiddenClassName);
-            tableHead.classList.add(fullyHiddenClassName);
-            tableContent.classList.add(hiddenClassName);
-            tableContent.classList.add(fullyHiddenClassName);
+            table.classList.add(hiddenClassName);
+            table.classList.add(fullyHiddenClassName);
         }
 
         if (header != STR_TIME_PERIOD && header != STR_PERIOD_TYPE)
@@ -645,12 +633,10 @@ function updateTable()
                 if (inpSetVisible.checked == false)
                 {
                     columnVisibility[header] = false;
-                    tableHead.classList.add(hiddenClassName);
-                    tableContent.classList.add(hiddenClassName);
+                    table.classList.add(hiddenClassName);
 
                     columnHideTimeout = setTimeout(() => {
-                        tableHead.classList.add(fullyHiddenClassName);
-                        tableContent.classList.add(fullyHiddenClassName);
+                        table.classList.add(fullyHiddenClassName);
                     }, 300);
                 }
                 else
@@ -658,12 +644,10 @@ function updateTable()
                     clearTimeout(columnHideTimeout);
 
                     columnVisibility[header] = true;
-                    tableHead.classList.remove(fullyHiddenClassName);
-                    tableContent.classList.remove(fullyHiddenClassName);
+                    table.classList.remove(fullyHiddenClassName);
 
                     setTimeout(() => {
-                        tableHead.classList.remove(hiddenClassName);
-                        tableContent.classList.remove(hiddenClassName);
+                        table.classList.remove(hiddenClassName);
                     }, 10);
                 }
 
@@ -678,7 +662,6 @@ function updateTable()
             dvColumnVisibilityInputs.appendChild(inpSetVisible);
         }
 
-
         columnIndex++;
     }
 
@@ -691,8 +674,7 @@ function updateTable()
         headerRow.appendChild(th);
     }
 
-    tableHead.appendChild(headerRow);
-    dvTableHead.appendChild(tableHead);
+    table.appendChild(headerRow);
 
     let tdMinImport, tdMaxImport, tdMinExport, tdMaxExport, tdMinVoltage, tdMaxVoltage;
     let minImport = Infinity; let minExport = Infinity; let minVoltage = Infinity;
@@ -702,6 +684,7 @@ function updateTable()
     for (let i = tableColumns[STR_TIME_PERIOD].length - 1; i >= 0; i--)
     {
         let tr = document.createElement("tr");
+
         if (inpEnableChargeTimes.checked && tableColumns[STR_PERIOD_TYPE][i] == PERIOD_TYPE_CHARGING)
         {
             tr.classList.add("tdCharging");
@@ -716,50 +699,56 @@ function updateTable()
         {
             let val = tableColumns[headerName][i];
 
-            let td = document.createElement("td");
-            if (headerName in DATA_TYPE_PROPERTIES)
+            let cell;
+            if (headerName == STR_TIME_PERIOD)
             {
-                td.innerHTML = val.toFixed(DATA_TYPE_PROPERTIES[headerName].decimalPlaces);
-            }
-            else
-            {
-                td.innerHTML = val;
-            }
+                cell = document.createElement("th");
 
-            if (headerName == STR_PERIOD_IMPORT_COST)
-            {
                 if (inpEnableChargeTimes.checked && tableColumns[STR_PERIOD_TYPE][i] == PERIOD_TYPE_CHARGING)
                 {
-                    td.classList.add("tdCharging");
+                    cell.classList.add("tdCharging");
                 }
                 else if (inpEnableNightRate.checked && tableColumns[STR_PERIOD_TYPE][i] == PERIOD_TYPE_NIGHT)
                 {
-                    td.classList.add("tdNight");
+                    cell.classList.add("tdNight");
                 }
             }
+            else
+            {
+                cell = document.createElement("td");
+            }
+                
+            if (headerName in DATA_TYPE_PROPERTIES)
+            {
+                cell.innerHTML = val.toFixed(DATA_TYPE_PROPERTIES[headerName].decimalPlaces);
+            }
+            else
+            {
+                cell.innerHTML = val;
+            }
 
-            tr.appendChild(td);
+            tr.appendChild(cell);
 
             if (headerName == STR_PERIOD_IMPORT_KWH)
             {
-                if (val < minImport) { minImport = val; tdMinImport = td; }
-                if (val > maxImport) { maxImport = val; tdMaxImport = td; }
+                if (val < minImport) { minImport = val; tdMinImport = cell; }
+                if (val > maxImport) { maxImport = val; tdMaxImport = cell; }
             }
 
             if (headerName == STR_PERIOD_EXPORT_KWH)
             {
-                if (val < minExport) { minExport = val; tdMinExport = td; }
-                if (val > maxExport) { maxExport = val; tdMaxExport = td; }
+                if (val < minExport) { minExport = val; tdMinExport = cell; }
+                if (val > maxExport) { maxExport = val; tdMaxExport = cell; }
             }
 
             if (headerName == STR_LINE_VOLTAGE)
             {
-                if (val < minVoltage) { minVoltage = val; tdMinVoltage = td; }
-                if (val > maxVoltage) { maxVoltage = val; tdMaxVoltage = td; }
+                if (val < minVoltage) { minVoltage = val; tdMinVoltage = cell; }
+                if (val > maxVoltage) { maxVoltage = val; tdMaxVoltage = cell; }
             }
         }
 
-        tableContent.appendChild(tr);
+        table.appendChild(tr);
     }
 
     if (tdMinImport != undefined) tdMinImport.classList.add("tdMin"); 
@@ -769,10 +758,7 @@ function updateTable()
     if (tdMinVoltage != undefined) tdMinVoltage.classList.add("tdMin"); 
     if (tdMaxVoltage != undefined) tdMaxVoltage.classList.add("tdMax");
 
-    dvTableContent.appendChild(tableContent);
-
-    dvTable.appendChild(dvTableHead);
-    dvTable.appendChild(dvTableContent);
+    dvTable.appendChild(table);
 
     forceHideGraph = false;
     updateGraphVisibility();
@@ -812,7 +798,7 @@ function updateDownloadLink(filename)
 function updateGraphVisibility()
 {
     let visible = showGraph && !forceHideGraph;
-    dvTable.style.display = visible ? "none" : "flex";
+    dvTable.style.display = visible ? "none" : "block";
     dvColumnsVisible.style.display = visible ? "none" : "grid";
     dvGraph.style.display = visible ? "grid" : "none";
     dvGraphInputs.style.display = visible ? "grid" : "none";
