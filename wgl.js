@@ -9,7 +9,7 @@ flat out uint fs_periodType;
 uniform vec4 viewWindow;
 
 void main()
-{    
+{
     vec2 p_transformed = vec2((vs_pos.x - viewWindow.x) / (viewWindow.z - viewWindow.x), (vs_pos.y - viewWindow.y) / (viewWindow.w - viewWindow.y)) * 2.0f - vec2(1.0f);
     gl_Position = vec4(p_transformed, 0, 1);
 
@@ -166,7 +166,7 @@ function wgl_setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes
     drawMode = DRAWMODE_BAR;
 }
 
-function wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes)
+function wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes, startAtZero)
 {
     //cannot set line thickness, so have to manually create quads for each line segment
     let numLines = yValues.length; //1 line for each y value to the next, with additional start point at 0,0
@@ -234,16 +234,38 @@ function wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinute
         vertOffsetDirs[lineIndex * 6 + 5] = -1;
     };
 
-    for (let i = 0; i < numLines; i++)
+    if (startAtZero)
     {
-        const parts = timePeriods[i].split(":");
-        const time = parts[0] + parts[1].split(" - ")[0];
-        const x = timePeriodToXValue[time];
+        for (let i = 0; i < numLines; i++)
+        {
+            const parts = timePeriods[i].split(":");
+            const time = parts[0] + parts[1].split(" - ")[0];
+            const x = timePeriodToXValue[time];
 
-        let y1 = (i == 0) ? 0 : yValues[i - 1];
-        let y2 = yValues[i];
+            let y1 = (i == 0) ? 0 : yValues[i - 1];
+            let y2 = yValues[i];
 
-        createLineSegment(i, periodTypes[i], x, y1, x + periodDurationMinutes, y2);
+            createLineSegment(i, periodTypes[i], x, y1, x + periodDurationMinutes, y2);
+        }
+    }
+    else
+    {
+        for (let i = 0; i < numLines - 1; i++)
+        {
+            //plotting values which are at specific time point rather than period.
+            //they will have been measured at the end of the given period, so want to be
+            //plotted at the period's end time.
+            //the first value will be at the end of the first period of the day, since
+            //the time at the start of that period will be stored in the previous day's file.
+            const parts = timePeriods[i].split(" - ")[1].split(":");
+            const time = parts[0] + parts[1];
+            const x = timePeriodToXValue[time];
+
+            let y1 = yValues[i];
+            let y2 = yValues[i + 1];
+
+            createLineSegment(i, periodTypes[i], x, y1, x + periodDurationMinutes, y2);
+        }
     }
 
     gl.bindVertexArray(vao_graph);
@@ -310,7 +332,7 @@ function wgl_init(canvas)
     vbo_periodTypes = gl.createBuffer();
     vbo_lineNormals = gl.createBuffer();
     vbo_lineOffsetDirs = gl.createBuffer();
-    
+
     let loc = gl.getAttribLocation(prg_bars, "vs_pos");
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo_dataVerts);
     gl.enableVertexAttribArray(loc);
@@ -345,7 +367,7 @@ function wgl_init(canvas)
 
     gl.clearColor(0.95, 0.95, 0.95, 1);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    
+
     gl.useProgram(prg_lines);
     gl.uniform1f(gl.getUniformLocation(prg_lines, "thickness"), 5);
     gl.uniform2f(gl.getUniformLocation(prg_lines, "resolution"), gl.canvas.width, gl.canvas.height);
@@ -377,7 +399,7 @@ function wgl_draw()
     case DRAWMODE_BAR:
         gl.useProgram(prg_bars);
         break;
-        
+
     case DRAWMODE_LINE:
         gl.useProgram(prg_lines);
         break;

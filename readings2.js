@@ -52,13 +52,13 @@ const TABLE_COLUMN_ORDER = [STR_TIME_PERIOD, STR_PERIOD_IMPORT_KWH, STR_CUMULATI
 
 //additional properties for each data type used when displaying their values
 const DTP_PERIOD_KWH =          { yMin: 0,      yMax: 1.5,    decimalPlaces: 3,   unit: "kWh",    graphType: "bar"  };
-const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 25,     decimalPlaces: 2,   unit: "kWh",    graphType: "line" };
+const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 25,     decimalPlaces: 2,   unit: "kWh",    graphType: "lineCumulative" };
 const DTP_AVERAGE_KWH =         { yMin: 0,      yMax: 10,     decimalPlaces: 3,   unit: "kW",     graphType: "bar"  };
 const DTP_PERIOD_COST =         { yMin: 0,      yMax: 15,     decimalPlaces: 3,   unit: "p",      graphType: "bar"  };
-const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 2,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
-const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 3,      decimalPlaces: 2,   unit: "£",      graphType: "line" };
-const DTP_BATTERY =             { yMin: 0,      yMax: 110,    decimalPlaces: 2,   unit: "%",      graphType: "line" };
-const DTP_VOLTAGE =             { yMin: 200,      yMax: 300,  decimalPlaces: 1,   unit: "V",      graphType: "line" };
+const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 3,      decimalPlaces: 2,   unit: "£",      graphType: "lineCumulative" };
+const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 3,      decimalPlaces: 2,   unit: "£",      graphType: "lineCumulative" };
+const DTP_BATTERY =             { yMin: 0,      yMax: 110,    decimalPlaces: 2,   unit: "%",      graphType: "lineInstant" };
+const DTP_VOLTAGE =             { yMin: 200,      yMax: 300,  decimalPlaces: 1,   unit: "V",      graphType: "lineInstant" };
 
 const DATA_TYPE_PROPERTIES = {};
 DATA_TYPE_PROPERTIES[STR_PERIOD_IMPORT_KWH] = DTP_PERIOD_KWH;
@@ -727,7 +727,7 @@ function updateTable()
             {
                 cell = document.createElement("td");
             }
-                
+
             if (headerName in DATA_TYPE_PROPERTIES)
             {
                 cell.innerHTML = val.toFixed(DATA_TYPE_PROPERTIES[headerName].decimalPlaces);
@@ -761,11 +761,11 @@ function updateTable()
         table.appendChild(tr);
     }
 
-    if (tdMinImport != undefined) tdMinImport.classList.add("tdMin"); 
-    if (tdMaxImport != undefined) tdMaxImport.classList.add("tdMax"); 
-    if (tdMinExport != undefined) tdMinExport.classList.add("tdMin"); 
-    if (tdMaxExport != undefined) tdMaxExport.classList.add("tdMax"); 
-    if (tdMinVoltage != undefined) tdMinVoltage.classList.add("tdMin"); 
+    if (tdMinImport != undefined) tdMinImport.classList.add("tdMin");
+    if (tdMaxImport != undefined) tdMaxImport.classList.add("tdMax");
+    if (tdMinExport != undefined) tdMinExport.classList.add("tdMin");
+    if (tdMaxExport != undefined) tdMaxExport.classList.add("tdMax");
+    if (tdMinVoltage != undefined) tdMinVoltage.classList.add("tdMin");
     if (tdMaxVoltage != undefined) tdMaxVoltage.classList.add("tdMax");
 
     dvTable.appendChild(table);
@@ -780,9 +780,13 @@ function updateGraph()
     {
         graph.setBarData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 10, DATA_TYPE_PROPERTIES[inpGraphData.value].unit);
     }
-    else
+    else if (DATA_TYPE_PROPERTIES[inpGraphData.value].graphType == "lineCumulative")
     {
-        graph.setLineData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 10, DATA_TYPE_PROPERTIES[inpGraphData.value].unit);
+        graph.setLineData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 10, DATA_TYPE_PROPERTIES[inpGraphData.value].unit, true);
+    }
+    else if (DATA_TYPE_PROPERTIES[inpGraphData.value].graphType == "lineInstant")
+    {
+        graph.setLineData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 10, DATA_TYPE_PROPERTIES[inpGraphData.value].unit, false);
     }
 
     graph.draw();

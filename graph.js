@@ -152,9 +152,9 @@ class Graph
         this.hoverValueUnit = hoverValueUnit;
     }
 
-    setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes, hoverValueUnit)
+    setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes, hoverValueUnit, startAtZero)
     {
-        wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes);
+        wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes, startAtZero);
         this.updateDataLookups(timePeriods, yValues, periodDurationMinutes);
         this.hoverValueUnit = hoverValueUnit;
     }
@@ -176,7 +176,7 @@ class Graph
     changeZoom(amount)
     {
         let mouseBefore = this.screenToGraphPos(this.prevMousePos);
-        
+
         if (this.mouseTarget == this.plot || this.mouseTarget == this.xAxis)
         {
             this.zoomX *= Math.pow(1.25, amount);
