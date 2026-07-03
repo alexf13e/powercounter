@@ -52,11 +52,11 @@ const TABLE_COLUMN_ORDER = [STR_TIME_PERIOD, STR_PERIOD_IMPORT_KWH, STR_CUMULATI
 
 //additional properties for each data type used when displaying their values
 const DTP_PERIOD_KWH =          { yMin: 0,      yMax: 1.5,    decimalPlaces: 3,   unit: "kWh",    graphType: "bar"  };
-const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 25,     decimalPlaces: 2,   unit: "kWh",    graphType: "lineCumulative" };
+const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 40,     decimalPlaces: 2,   unit: "kWh",    graphType: "lineCumulative" };
 const DTP_AVERAGE_KWH =         { yMin: 0,      yMax: 10,     decimalPlaces: 3,   unit: "kW",     graphType: "bar"  };
 const DTP_PERIOD_COST =         { yMin: 0,      yMax: 15,     decimalPlaces: 3,   unit: "p",      graphType: "bar"  };
-const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 3,      decimalPlaces: 2,   unit: "£",      graphType: "lineCumulative" };
-const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 3,      decimalPlaces: 2,   unit: "£",      graphType: "lineCumulative" };
+const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 7,      decimalPlaces: 2,   unit: "£",      graphType: "lineCumulative" };
+const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 7,      decimalPlaces: 2,   unit: "£",      graphType: "lineCumulative" };
 const DTP_BATTERY =             { yMin: 0,      yMax: 110,    decimalPlaces: 2,   unit: "%",      graphType: "lineInstant" };
 const DTP_VOLTAGE =             { yMin: 200,      yMax: 300,  decimalPlaces: 1,   unit: "V",      graphType: "lineInstant" };
 
