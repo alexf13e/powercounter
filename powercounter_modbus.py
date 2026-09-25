@@ -51,6 +51,12 @@ def get_line_voltage():
     except termios.error:
         return 0
 
+def get_line_frequency():
+    try:
+        return instrument.read_register(registeraddress=39139, number_of_decimals = 2, functioncode = 4, signed=True)
+    except termios.error:
+        return 0
+
 
 def record_values():
     global timeperiod_start
@@ -74,6 +80,7 @@ def record_values():
 
     battery_soc = get_battery_soc_kwh()
     line_voltage = get_line_voltage()
+    line_frequency = get_line_frequency()
 
     # deal with awkwardness of daily counter resetting just before taking the reading.
     # want final values of the day to only include until the last moment of the day, not the few seconds of the next day
@@ -102,8 +109,8 @@ def record_values():
     file_exists = os.path.isfile(filename)
     with open(filename, "a") as f:
         if not file_exists:
-            f.write("time period,import kWh,cumulative import kWh,average import kW,export kWh,cumulative export kWh,average export kW,battery charge %,line voltage V\n")
-        f.write(f"{display_period},{period_import_kwh},{today_import_kwh},{average_import_kW},{period_export_kwh},{today_export_kwh},{average_export_kW},{battery_soc},{line_voltage}\n")
+            f.write("time period,import kWh,cumulative import kWh,average import kW,export kWh,cumulative export kWh,average export kW,battery charge %,line voltage V,line frequency Hz\n")
+        f.write(f"{display_period},{period_import_kwh},{today_import_kwh},{average_import_kW},{period_export_kwh},{today_export_kwh},{average_export_kW},{battery_soc},{line_voltage},{line_frequency}\n")
 
     if not file_exists:
         # file has just been created, so update log list file
@@ -130,6 +137,7 @@ def get_seconds_until_next_record():
 instrument = minimalmodbus.Instrument(config.MODBUS_DEVICE_PATH, config.MODBUS_SERVER_ADDRESS, minimalmodbus.MODE_RTU)
 instrument.serial.baudrate = config.MODBUS_BAUDRATE
 
+time.sleep(get_seconds_until_next_record())
 timeperiod_start = datetime.now()
 prev_today_import_kwh = get_today_import_kwh()
 prev_today_export_kwh = get_today_export_kwh()
