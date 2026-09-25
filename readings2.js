@@ -38,6 +38,10 @@ const STR_CUMULATIVE_EXPORT_KWH = "cumulative export kWh";
 const STR_AVERAGE_EXPORT_KW = "average export kW";
 const STR_BATTERY_CHARGE = "battery charge %";
 const STR_LINE_VOLTAGE = "line voltage V"
+const STR_LINE_FREQUENCY = "line frequency Hz";
+
+let presentColumns = {};
+let minMaxColumns = [STR_PERIOD_IMPORT_KWH, STR_PERIOD_EXPORT_KWH, STR_LINE_VOLTAGE, STR_LINE_FREQUENCY];
 
 //column headers generated on file load
 const STR_PERIOD_IMPORT_COST = "import cost p";
@@ -47,18 +51,22 @@ const STR_CUMULATIVE_EXPORT_EARN = "cumulative export earn £";
 const STR_CUMULATIVE_NET_EARN = "cumulative net earn £";
 const STR_PERIOD_TYPE = "period type";
 
-const TABLE_COLUMN_ORDER = [STR_TIME_PERIOD, STR_PERIOD_IMPORT_KWH, STR_CUMULATIVE_IMPORT_KWH, STR_AVERAGE_IMPORT_KW, STR_PERIOD_EXPORT_KWH, STR_CUMULATIVE_EXPORT_KWH, STR_AVERAGE_EXPORT_KW, STR_PERIOD_IMPORT_COST, STR_CUMULATIVE_IMPORT_COST, STR_PERIOD_EXPORT_EARN, STR_CUMULATIVE_EXPORT_EARN, STR_CUMULATIVE_NET_EARN, STR_BATTERY_CHARGE, STR_LINE_VOLTAGE, STR_PERIOD_TYPE];
+const TABLE_COLUMN_ORDER = [STR_TIME_PERIOD, STR_PERIOD_IMPORT_KWH, STR_CUMULATIVE_IMPORT_KWH, STR_AVERAGE_IMPORT_KW, STR_PERIOD_EXPORT_KWH, STR_CUMULATIVE_EXPORT_KWH, STR_AVERAGE_EXPORT_KW, STR_PERIOD_IMPORT_COST, STR_CUMULATIVE_IMPORT_COST, STR_PERIOD_EXPORT_EARN, STR_CUMULATIVE_EXPORT_EARN, STR_CUMULATIVE_NET_EARN, STR_BATTERY_CHARGE, STR_LINE_VOLTAGE, STR_LINE_FREQUENCY, STR_PERIOD_TYPE];
 
+const GT_BAR = "bar";
+const GT_LINE_INSTANT = "lineInstant";
+const GT_LINE_CUMULATIVE = "lineCumulative";
 
 //additional properties for each data type used when displaying their values
-const DTP_PERIOD_KWH =          { yMin: 0,      yMax: 1.5,    decimalPlaces: 3,   unit: "kWh",    graphType: "bar"  };
-const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 40,     decimalPlaces: 2,   unit: "kWh",    graphType: "lineCumulative" };
-const DTP_AVERAGE_KWH =         { yMin: 0,      yMax: 10,     decimalPlaces: 3,   unit: "kW",     graphType: "bar"  };
-const DTP_PERIOD_COST =         { yMin: 0,      yMax: 15,     decimalPlaces: 3,   unit: "p",      graphType: "bar"  };
-const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 7,      decimalPlaces: 2,   unit: "£",      graphType: "lineCumulative" };
-const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 7,      decimalPlaces: 2,   unit: "£",      graphType: "lineCumulative" };
-const DTP_BATTERY =             { yMin: 0,      yMax: 110,    decimalPlaces: 2,   unit: "%",      graphType: "lineInstant" };
-const DTP_VOLTAGE =             { yMin: 200,      yMax: 300,  decimalPlaces: 1,   unit: "V",      graphType: "lineInstant" };
+const DTP_PERIOD_KWH =          { yMin: 0,      yMax: 1.5,  decimalPlaces: 3,   unit: "kWh",    graphType: GT_BAR               };
+const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 40,   decimalPlaces: 2,   unit: "kWh",    graphType: GT_LINE_CUMULATIVE   };
+const DTP_AVERAGE_KWH =         { yMin: 0,      yMax: 10,   decimalPlaces: 3,   unit: "kW",     graphType: GT_BAR               };
+const DTP_PERIOD_COST =         { yMin: 0,      yMax: 15,   decimalPlaces: 3,   unit: "p",      graphType: GT_BAR               };
+const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 7,    decimalPlaces: 2,   unit: "£",      graphType: GT_LINE_CUMULATIVE   };
+const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 7,    decimalPlaces: 2,   unit: "£",      graphType: GT_LINE_CUMULATIVE   };
+const DTP_BATTERY =             { yMin: 0,      yMax: 110,  decimalPlaces: 2,   unit: "%",      graphType: GT_LINE_INSTANT      };
+const DTP_VOLTAGE =             { yMin: 200,    yMax: 300,  decimalPlaces: 1,   unit: "V",      graphType: GT_LINE_INSTANT      };
+const DTP_FREQUENCY =           { yMin: 30,     yMax: 70,   decimalPlaces: 1,   unit: "Hz",     graphType: GT_LINE_INSTANT      };
 
 const DATA_TYPE_PROPERTIES = {};
 DATA_TYPE_PROPERTIES[STR_PERIOD_IMPORT_KWH] = DTP_PERIOD_KWH;
@@ -76,13 +84,14 @@ DATA_TYPE_PROPERTIES[STR_CUMULATIVE_EXPORT_EARN] = DTP_CUMULATIVE_COST;
 DATA_TYPE_PROPERTIES[STR_CUMULATIVE_NET_EARN] = DTP_CUMULATIVE_NET_COST;
 DATA_TYPE_PROPERTIES[STR_BATTERY_CHARGE] = DTP_BATTERY;
 DATA_TYPE_PROPERTIES[STR_LINE_VOLTAGE] = DTP_VOLTAGE;
+DATA_TYPE_PROPERTIES[STR_LINE_FREQUENCY] = DTP_FREQUENCY;
 
 const PERIOD_TYPE_NORMAL = 0;
 const PERIOD_TYPE_NIGHT = 1;
 const PERIOD_TYPE_CHARGING = 2;
 
-//very almost the same as table columns
-const GRAPH_DATA_OPTIONS = [STR_PERIOD_IMPORT_KWH, STR_CUMULATIVE_IMPORT_KWH, STR_AVERAGE_IMPORT_KW, STR_PERIOD_EXPORT_KWH, STR_CUMULATIVE_EXPORT_KWH, STR_AVERAGE_EXPORT_KW, STR_PERIOD_IMPORT_COST, STR_CUMULATIVE_IMPORT_COST, STR_PERIOD_EXPORT_EARN, STR_CUMULATIVE_EXPORT_EARN, STR_CUMULATIVE_NET_EARN, STR_BATTERY_CHARGE, STR_LINE_VOLTAGE];
+//names of columns which can be shown
+const GRAPH_DATA_OPTIONS = [STR_PERIOD_IMPORT_KWH, STR_CUMULATIVE_IMPORT_KWH, STR_AVERAGE_IMPORT_KW, STR_PERIOD_EXPORT_KWH, STR_CUMULATIVE_EXPORT_KWH, STR_AVERAGE_EXPORT_KW, STR_PERIOD_IMPORT_COST, STR_CUMULATIVE_IMPORT_COST, STR_PERIOD_EXPORT_EARN, STR_CUMULATIVE_EXPORT_EARN, STR_CUMULATIVE_NET_EARN, STR_BATTERY_CHARGE, STR_LINE_VOLTAGE, STR_LINE_FREQUENCY];
 
 let showGraph = false; //toggle between showing the graph or table
 let forceHideGraph = false; //force the graph to be hidden when a file is not found and a message wants to be displayed
@@ -92,13 +101,9 @@ let graph;
 
 
 window.addEventListener("load", async () => {
-    createGraphDataOptions();
     loadLocalStorage();
 
     graph = new Graph(inpEnableGraphValueOnHover.checked, dvGraph);
-    inpGraphData.value = STR_PERIOD_IMPORT_KWH;
-    graph.setYAxisRange(DATA_TYPE_PROPERTIES[inpGraphData.value].yMin, DATA_TYPE_PROPERTIES[inpGraphData.value].yMax);
-    graph.setYDecimalPlaces(DATA_TYPE_PROPERTIES[inpGraphData.value].decimalPlaces);
 
     if (await createLogList() == false) return;
 
@@ -280,17 +285,6 @@ function loadLocalStorage()
     }
 }
 
-function createGraphDataOptions()
-{
-    for (let optionText of GRAPH_DATA_OPTIONS)
-    {
-        let o = document.createElement("option");
-        o.value = optionText;
-        o.innerHTML = optionText;
-        inpGraphData.appendChild(o);
-    }
-}
-
 async function createLogList()
 {
     //get a list of existing log files
@@ -386,7 +380,7 @@ async function onLogDateChanged()
         if (await loadNewFile(filename) == false)
         {
             showError("failed to read file: " + filename);
-            updateDownloadLink("");
+            updateDownloadLink(filename);
             forceHideGraph = true;
             updateGraphVisibility();
             graph.clear();
@@ -420,6 +414,7 @@ async function loadNewFile(filename)
 
     if (createDataFromCSV(text) == false) return false;
 
+    createGraphDataOptions();
     updateCosts(false);
     updateGraph();
     updateDownloadLink(filename);
@@ -435,7 +430,7 @@ async function reloadMostRecentFile()
     if (await loadNewFile(currentFile) == false)
     {
         showError("failed to read file: " + filename);
-        updateDownloadLink("");
+        updateDownloadLink(filename);
         forceHideGraph = true;
         updateGraphVisibility();
         graph.clear();
@@ -467,11 +462,31 @@ function createDataFromCSV(fileText)
         tableColumns[header] = null;
     }
 
-    tableColumns[STR_PERIOD_IMPORT_COST] = null;
-    tableColumns[STR_CUMULATIVE_IMPORT_COST] = null;
-    tableColumns[STR_PERIOD_EXPORT_EARN] = null;
-    tableColumns[STR_CUMULATIVE_EXPORT_EARN] = null;
-    tableColumns[STR_CUMULATIVE_NET_EARN] = null;
+    if (!(STR_TIME_PERIOD in tableColumns)) return false;
+
+    presentColumns[STR_TIME_PERIOD] = true;
+    presentColumns[STR_PERIOD_IMPORT_KWH] = STR_PERIOD_IMPORT_KWH in tableColumns;
+    presentColumns[STR_CUMULATIVE_IMPORT_KWH] = STR_CUMULATIVE_IMPORT_KWH in tableColumns;
+    presentColumns[STR_AVERAGE_IMPORT_KW] = STR_AVERAGE_IMPORT_KW in tableColumns;
+    presentColumns[STR_PERIOD_EXPORT_KWH] = STR_PERIOD_EXPORT_KWH in tableColumns;
+    presentColumns[STR_CUMULATIVE_EXPORT_KWH] = STR_CUMULATIVE_EXPORT_KWH in tableColumns;
+    presentColumns[STR_AVERAGE_EXPORT_KW] = STR_AVERAGE_EXPORT_KW in tableColumns;
+    presentColumns[STR_BATTERY_CHARGE] = STR_BATTERY_CHARGE in tableColumns;
+    presentColumns[STR_LINE_VOLTAGE] = STR_LINE_VOLTAGE in tableColumns;
+    presentColumns[STR_LINE_FREQUENCY] = STR_LINE_FREQUENCY in tableColumns;
+
+    presentColumns[STR_PERIOD_IMPORT_COST] = presentColumns[STR_PERIOD_IMPORT_KWH];
+    presentColumns[STR_CUMULATIVE_IMPORT_COST] = presentColumns[STR_PERIOD_IMPORT_KWH];
+    presentColumns[STR_PERIOD_EXPORT_EARN] = presentColumns[STR_PERIOD_EXPORT_KWH];
+    presentColumns[STR_CUMULATIVE_EXPORT_EARN] = presentColumns[STR_PERIOD_EXPORT_KWH];
+    presentColumns[STR_CUMULATIVE_NET_EARN] = presentColumns[STR_PERIOD_IMPORT_KWH] && presentColumns[STR_PERIOD_EXPORT_KWH];
+
+    if (presentColumns[STR_PERIOD_IMPORT_COST]) tableColumns[STR_PERIOD_IMPORT_COST] = null;
+    if (presentColumns[STR_CUMULATIVE_IMPORT_COST]) tableColumns[STR_CUMULATIVE_IMPORT_COST] = null;
+    if (presentColumns[STR_PERIOD_EXPORT_EARN]) tableColumns[STR_PERIOD_EXPORT_EARN] = null;
+    if (presentColumns[STR_CUMULATIVE_EXPORT_EARN]) tableColumns[STR_CUMULATIVE_EXPORT_EARN] = null;
+    if (presentColumns[STR_CUMULATIVE_NET_EARN]) tableColumns[STR_CUMULATIVE_NET_EARN] = null;
+
     tableColumns[STR_PERIOD_TYPE] = null;
 
 
@@ -505,15 +520,57 @@ function createDataFromCSV(fileText)
         }
 
         //costs will be calculated and updated based on unit cost input box
-        tableColumns[STR_PERIOD_IMPORT_COST].push(0);
-        tableColumns[STR_CUMULATIVE_IMPORT_COST].push(0);
-        tableColumns[STR_PERIOD_EXPORT_EARN].push(0);
-        tableColumns[STR_CUMULATIVE_EXPORT_EARN].push(0);
-        tableColumns[STR_CUMULATIVE_NET_EARN].push(0);
+        if (presentColumns[STR_PERIOD_IMPORT_COST]) tableColumns[STR_PERIOD_IMPORT_COST].push(0);
+        if (presentColumns[STR_CUMULATIVE_IMPORT_COST]) tableColumns[STR_CUMULATIVE_IMPORT_COST].push(0);
+        if (presentColumns[STR_PERIOD_EXPORT_EARN]) tableColumns[STR_PERIOD_EXPORT_EARN].push(0);
+        if (presentColumns[STR_CUMULATIVE_EXPORT_EARN]) tableColumns[STR_CUMULATIVE_EXPORT_EARN].push(0);
+        if (presentColumns[STR_CUMULATIVE_NET_EARN]) tableColumns[STR_CUMULATIVE_NET_EARN].push(0);
+
         tableColumns[STR_PERIOD_TYPE].push(PERIOD_TYPE_NORMAL);
     }
 
     return true;
+}
+
+function createGraphDataOptions()
+{
+    const selectedOption = inpGraphData.value;
+    inpGraphData.replaceChildren();
+
+    for (let optionText of GRAPH_DATA_OPTIONS)
+    {
+        let o = document.createElement("option");
+        o.value = optionText;
+        o.innerHTML = optionText;
+        o.disabled = presentColumns[optionText] == false;
+        inpGraphData.appendChild(o);
+    }
+
+    let optionFound = false;
+    if (presentColumns[selectedOption])
+    {
+        inpGraphData.value = selectedOption;
+        optionFound = true;
+    }
+    else
+    {
+        for (let option of GRAPH_DATA_OPTIONS)
+        {
+            if (presentColumns[option])
+            {
+                inpGraphData.value = option;
+                optionFound = true;
+                break;
+            }
+        }
+    }
+
+    btnToggleGraph.disabled = !optionFound;
+    forceHideGraph = !optionFound;
+    updateGraphVisibility();
+
+    graph.setYAxisRange(DATA_TYPE_PROPERTIES[inpGraphData.value].yMin, DATA_TYPE_PROPERTIES[inpGraphData.value].yMax);
+    graph.setYDecimalPlaces(DATA_TYPE_PROPERTIES[inpGraphData.value].decimalPlaces);
 }
 
 function isNightRate(time)
@@ -578,21 +635,27 @@ function updateCosts(refreshCostGraph)
             tableColumns[STR_PERIOD_TYPE][i] = PERIOD_TYPE_NIGHT;
         }
 
-        let periodImportCost = tableColumns[STR_PERIOD_IMPORT_KWH][i] * importCost;
-        cumulativeImportCost += periodImportCost;
+        if (presentColumns[STR_PERIOD_IMPORT_KWH])
+        {
+            let periodImportCost = tableColumns[STR_PERIOD_IMPORT_KWH][i] * importCost;
+            cumulativeImportCost += periodImportCost;
+            tableColumns[STR_PERIOD_IMPORT_COST][i] = periodImportCost;
+            tableColumns[STR_CUMULATIVE_IMPORT_COST][i] = cumulativeImportCost / 100; //convert p to £
+        }
 
-        let periodExportEarn = tableColumns[STR_PERIOD_EXPORT_KWH][i] * pencePerKWHExport;
-        cumulativeExportEarn += periodExportEarn;
+        if (presentColumns[STR_PERIOD_EXPORT_KWH])
+        {
+            let periodExportEarn = tableColumns[STR_PERIOD_EXPORT_KWH][i] * pencePerKWHExport;
+            cumulativeExportEarn += periodExportEarn;
+            tableColumns[STR_PERIOD_EXPORT_EARN][i] = periodExportEarn;
+            tableColumns[STR_CUMULATIVE_EXPORT_EARN][i] = cumulativeExportEarn / 100;
+        }
 
-        let cumulativeNetEarn = cumulativeExportEarn - cumulativeImportCost;
-
-        tableColumns[STR_PERIOD_IMPORT_COST][i] = periodImportCost;
-        tableColumns[STR_CUMULATIVE_IMPORT_COST][i] = cumulativeImportCost / 100; //convert p to £
-
-        tableColumns[STR_PERIOD_EXPORT_EARN][i] = periodExportEarn;
-        tableColumns[STR_CUMULATIVE_EXPORT_EARN][i] = cumulativeExportEarn / 100;
-
-        tableColumns[STR_CUMULATIVE_NET_EARN][i] = cumulativeNetEarn / 100;
+        if (presentColumns[STR_PERIOD_IMPORT_KWH] && presentColumns[STR_PERIOD_EXPORT_KWH])
+        {
+            let cumulativeNetEarn = cumulativeExportEarn - cumulativeImportCost;
+            tableColumns[STR_CUMULATIVE_NET_EARN][i] = cumulativeNetEarn / 100;
+        }
     }
 
     updateTable();
@@ -614,91 +677,51 @@ function updateTable()
     //clear existing table data if there were any
     dvTable.replaceChildren();
 
-    let table = document.createElement("table");
+    let table = document.createElement("table");    
     let headerRow = document.createElement("thead");
 
-    dvColumnVisibilityInputs.replaceChildren();
-
-    let columnVisibility = getLocalStorage("columnVisibility");
-    if (columnVisibility == null) columnVisibility = {};
-    let columnIndex = 1;
-    for (let header in tableColumns)
-    {
-        if (!(header in columnVisibility))
-        {
-            columnVisibility[header] = true;
-        }
-
-        if (header == STR_TIME_PERIOD) columnVisibility[header] = true;
-        if (header == STR_PERIOD_TYPE) columnVisibility[header] = false;
-
-        let hiddenClassName = "colHidden" + columnIndex.toString();
-        let fullyHiddenClassName = "colHiddenFully" + columnIndex.toString();
-        if (columnVisibility[header] == false)
-        {
-            table.classList.add(hiddenClassName);
-            table.classList.add(fullyHiddenClassName);
-        }
-
-        if (header != STR_TIME_PERIOD && header != STR_PERIOD_TYPE)
-        {
-            let inpSetVisible = document.createElement("input");
-            inpSetVisible.id = "inpSetVisible" + header;
-            inpSetVisible.type = "checkbox";
-            inpSetVisible.checked = columnVisibility[header];
-
-            inpSetVisible.addEventListener("change", () => {
-                let columnVisibility = getLocalStorage("columnVisibility");
-                if (inpSetVisible.checked == false)
-                {
-                    columnVisibility[header] = false;
-                    table.classList.add(hiddenClassName);
-
-                    columnHideTimeout = setTimeout(() => {
-                        table.classList.add(fullyHiddenClassName);
-                    }, 300);
-                }
-                else
-                {
-                    clearTimeout(columnHideTimeout);
-
-                    columnVisibility[header] = true;
-                    table.classList.remove(fullyHiddenClassName);
-
-                    setTimeout(() => {
-                        table.classList.remove(hiddenClassName);
-                    }, 10);
-                }
-
-                setLocalStorage("columnVisibility", columnVisibility);
-            });
-
-            let lbSetVisible = document.createElement("label");
-            lbSetVisible.htmlFor = inpSetVisible.id;
-            lbSetVisible.innerHTML = header;
-
-            dvColumnVisibilityInputs.append(lbSetVisible);
-            dvColumnVisibilityInputs.appendChild(inpSetVisible);
-        }
-
-        columnIndex++;
-    }
-
-    setLocalStorage("columnVisibility", columnVisibility);
-
+    let minTexts = {};
+    let maxTexts = {};
+    let minVals = {};
+    let maxVals = {};
     for (let headerName in tableColumns)
     {
+        if (headerName == STR_PERIOD_TYPE) continue;
+
         let th = document.createElement("th");
-        th.innerHTML = headerName;
+        let dvOuter = document.createElement("div");
+        let dvBottom = document.createElement("div");
+
+        let pName = document.createElement("p");
+        pName.innerHTML = headerName;
+        dvOuter.appendChild(pName);
+
+        let pMin = document.createElement("p");
+        pMin.classList.add(headerName == STR_TIME_PERIOD || (minMaxColumns.includes(headerName)) ? "tdMin" : "tdInvisible");
+        dvBottom.appendChild(pMin);
+        minTexts[headerName] = pMin;
+    
+    
+        let pMax = document.createElement("p");
+        pMax.classList.add(headerName == STR_TIME_PERIOD || (minMaxColumns.includes(headerName)) ? "tdMax" : "tdInvisible");
+        dvBottom.appendChild(pMax);
+        maxTexts[headerName] = pMax;
+
+        dvOuter.appendChild(dvBottom);
+        th.appendChild(dvOuter);
         headerRow.appendChild(th);
+
+
+        minVals[headerName] = Infinity;
+        maxVals[headerName] = -Infinity;
     }
 
     table.appendChild(headerRow);
 
-    let tdMinImport, tdMaxImport, tdMinExport, tdMaxExport, tdMinVoltage, tdMaxVoltage;
-    let minImport = Infinity; let minExport = Infinity; let minVoltage = Infinity;
-    let maxImport = -Infinity; let maxExport = -Infinity; let maxVoltage = -Infinity;
-
+    
+    let minTDs = {};
+    let maxTDs = {};
+    
     //values want to be displayed in reverse order, so iterate from end to start
     for (let i = tableColumns[STR_TIME_PERIOD].length - 1; i >= 0; i--)
     {
@@ -707,6 +730,8 @@ function updateTable()
         //for each column in row i, create the table elements
         for (let headerName in tableColumns)
         {
+            if (headerName == STR_PERIOD_TYPE) continue;
+
             let val = tableColumns[headerName][i];
 
             let cell;
@@ -739,52 +764,141 @@ function updateTable()
 
             tr.appendChild(cell);
 
-            if (headerName == STR_PERIOD_IMPORT_KWH)
+            if (minMaxColumns.includes(headerName))
             {
-                if (val < minImport) { minImport = val; tdMinImport = cell; }
-                if (val > maxImport) { maxImport = val; tdMaxImport = cell; }
-            }
-
-            if (headerName == STR_PERIOD_EXPORT_KWH)
-            {
-                if (val < minExport) { minExport = val; tdMinExport = cell; }
-                if (val > maxExport) { maxExport = val; tdMaxExport = cell; }
-            }
-
-            if (headerName == STR_LINE_VOLTAGE)
-            {
-                if (val < minVoltage) { minVoltage = val; tdMinVoltage = cell; }
-                if (val > maxVoltage) { maxVoltage = val; tdMaxVoltage = cell; }
+                if (val < minVals[headerName]) { minVals[headerName] = val; minTDs[headerName] = cell; }
+                if (val > maxVals[headerName]) { maxVals[headerName] = val; maxTDs[headerName] = cell; }
             }
         }
 
         table.appendChild(tr);
     }
 
-    if (tdMinImport != undefined) tdMinImport.classList.add("tdMin");
-    if (tdMaxImport != undefined) tdMaxImport.classList.add("tdMax");
-    if (tdMinExport != undefined) tdMinExport.classList.add("tdMin");
-    if (tdMaxExport != undefined) tdMaxExport.classList.add("tdMax");
-    if (tdMinVoltage != undefined) tdMinVoltage.classList.add("tdMin");
-    if (tdMaxVoltage != undefined) tdMaxVoltage.classList.add("tdMax");
+    for (headerName in tableColumns)
+    {
+        if (headerName == STR_PERIOD_TYPE) continue;
+
+        if (minMaxColumns.includes(headerName))
+        {
+            if (minTDs[headerName] != undefined) minTDs[headerName].classList.add("tdMin");
+            if (maxTDs[headerName] != undefined) maxTDs[headerName].classList.add("tdMax");
+            minTexts[headerName].innerHTML = minVals[headerName].toFixed(DATA_TYPE_PROPERTIES[headerName].decimalPlaces);
+            maxTexts[headerName].innerHTML = maxVals[headerName].toFixed(DATA_TYPE_PROPERTIES[headerName].decimalPlaces);
+        }
+        else if (headerName == STR_TIME_PERIOD)
+        {
+            minTexts[headerName].innerHTML = "min";
+            maxTexts[headerName].innerHTML = "max";
+        }
+        else
+        {
+            minTexts[headerName].innerHTML = "0";
+            maxTexts[headerName].innerHTML = "0";
+        }
+
+    }
 
     dvTable.appendChild(table);
+
+    createColumnVisibilityInputs();
 
     forceHideGraph = false;
     updateGraphVisibility();
 }
 
+function createColumnVisibilityInputs()
+{
+    const STR_COLUMN_NOT_PRESENT_HINT = "column not present in csv";
+
+    dvColumnVisibilityInputs.replaceChildren();
+    let table = dvTable.children[0];
+
+    let columnVisibility = getLocalStorage("columnVisibility");
+    if (columnVisibility == null) columnVisibility = {};
+    let columnIndex = 2;
+    for (let header of TABLE_COLUMN_ORDER)
+    {
+        if (header == STR_TIME_PERIOD || header == STR_PERIOD_TYPE) continue;
+        
+        if (!(header in columnVisibility))
+        {
+            columnVisibility[header] = true;
+        }
+
+        let hiddenClassName = "colHidden" + columnIndex.toString();
+        let fullyHiddenClassName = "colHiddenFully" + columnIndex.toString();
+        if (columnVisibility[header] == false && presentColumns[header] == true)
+        {
+            table.classList.add(hiddenClassName);
+            table.classList.add(fullyHiddenClassName);
+        }
+
+        let inpSetVisible = document.createElement("input");
+        inpSetVisible.id = "inpSetVisible" + header;
+        inpSetVisible.type = "checkbox";
+        inpSetVisible.checked = presentColumns[header] && columnVisibility[header];
+        
+        
+        if (presentColumns[header] == false)
+        {
+            inpSetVisible.disabled = true;
+            inpSetVisible.title = STR_COLUMN_NOT_PRESENT_HINT;
+        }
+        
+        inpSetVisible.addEventListener("change", () => {
+            let columnVisibility = getLocalStorage("columnVisibility");
+            if (inpSetVisible.checked == false)
+            {
+                columnVisibility[header] = false;
+                table.classList.add(hiddenClassName);
+
+                columnHideTimeout = setTimeout(() => {
+                    table.classList.add(fullyHiddenClassName);
+                }, 300);
+            }
+            else
+            {
+                clearTimeout(columnHideTimeout);
+
+                columnVisibility[header] = true;
+                table.classList.remove(fullyHiddenClassName);
+
+                setTimeout(() => {
+                    table.classList.remove(hiddenClassName);
+                }, 10);
+            }
+
+            setLocalStorage("columnVisibility", columnVisibility);
+        });
+
+        let lbSetVisible = document.createElement("label");
+        lbSetVisible.htmlFor = inpSetVisible.id;
+        lbSetVisible.innerHTML = header;
+        if (presentColumns[header] == false)
+        {
+            lbSetVisible.title = STR_COLUMN_NOT_PRESENT_HINT;
+        }
+
+        dvColumnVisibilityInputs.appendChild(lbSetVisible);
+        dvColumnVisibilityInputs.appendChild(inpSetVisible);
+
+        if (presentColumns[header]) columnIndex++;
+    }
+
+    setLocalStorage("columnVisibility", columnVisibility);
+}
+
 function updateGraph()
 {
-    if (DATA_TYPE_PROPERTIES[inpGraphData.value].graphType == "bar")
+    if (DATA_TYPE_PROPERTIES[inpGraphData.value].graphType == GT_BAR)
     {
         graph.setBarData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 10, DATA_TYPE_PROPERTIES[inpGraphData.value].unit);
     }
-    else if (DATA_TYPE_PROPERTIES[inpGraphData.value].graphType == "lineCumulative")
+    else if (DATA_TYPE_PROPERTIES[inpGraphData.value].graphType == GT_LINE_CUMULATIVE)
     {
         graph.setLineData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 10, DATA_TYPE_PROPERTIES[inpGraphData.value].unit, true);
     }
-    else if (DATA_TYPE_PROPERTIES[inpGraphData.value].graphType == "lineInstant")
+    else if (DATA_TYPE_PROPERTIES[inpGraphData.value].graphType == GT_LINE_INSTANT)
     {
         graph.setLineData(tableColumns[STR_TIME_PERIOD], tableColumns[inpGraphData.value], tableColumns[STR_PERIOD_TYPE], 10, DATA_TYPE_PROPERTIES[inpGraphData.value].unit, false);
     }
