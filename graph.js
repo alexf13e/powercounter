@@ -10,6 +10,8 @@ class Graph
 
         this.enableValueOnHover = enableValueOnHover;
         this.hoverValueUnit = "";
+        this.hoverTimeType = "";
+        this.periodDurationMinutes = 0;
 
         this.yDecimalPlaces = 3;
 
@@ -150,6 +152,8 @@ class Graph
         wgl_setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes);
         this.updateDataLookups(timePeriods, yValues, periodDurationMinutes);
         this.hoverValueUnit = hoverValueUnit;
+        this.hoverTimeType = "period";
+        this.periodDurationMinutes = periodDurationMinutes;
     }
 
     setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes, hoverValueUnit, startAtZero)
@@ -157,6 +161,8 @@ class Graph
         wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes, startAtZero);
         this.updateDataLookups(timePeriods, yValues, periodDurationMinutes);
         this.hoverValueUnit = hoverValueUnit;
+        this.hoverTimeType = "instant";
+        this.periodDurationMinutes = periodDurationMinutes;
     }
 
     setYAxisRange(yMin, yMax)
@@ -341,14 +347,42 @@ class Graph
                     value = "no data";
                 }
 
+                let timeString;
+                let nextIntTimePeriod = this.xValueToTimePeriod[(intX + this.periodDurationMinutes) % this.xValueToTimePeriod.length];
+                switch (this.hoverTimeType)
+                {
+                    case "instant":
+                        hour = Math.floor(nextIntTimePeriod / 100);
+                        minute = nextIntTimePeriod % 100;
+                        timeString = hour.toString().padStart(2, "0") + ":" + minute.toString().padStart(2, "0");
+                        break;
 
-                let timeString = hour.toString().padStart(2, "0") + ":" + minute.toString().padStart(2, "0");
+                    case "period":
+                        timeString = hour.toString().padStart(2, "0") + ":" + minute.toString().padStart(2, "0");
+                        hour = Math.floor(nextIntTimePeriod / 100);
+                        minute = nextIntTimePeriod % 100;
+                        timeString += " - " + hour.toString().padStart(2, "0") + ":" + minute.toString().padStart(2, "0");
+                        break;
+                }
 
                 this.pHoverInfo.style.display = "block";
                 this.pHoverInfo.style.position = "absolute";
-                this.pHoverInfo.style.left = `${currentMouse.x + 5}px`;
-                this.pHoverInfo.style.top = `${currentMouse.y - 25}px`;
                 this.pHoverInfo.innerHTML = timeString + " = " + value;
+
+                const brHover = this.pHoverInfo.getBoundingClientRect();
+                const brPlot = this.plot.getBoundingClientRect();
+
+                let dx = 5;
+                let dy = -25;
+                let hoverRight = currentMouse.x + dx + brHover.width;
+                if (currentMouse.x + dx + brHover.width > brPlot.right)
+                {
+                    //prevent the hover from overflowing the plot
+                    dx = dx - (hoverRight - brPlot.right); 
+                }
+
+                this.pHoverInfo.style.left = `${currentMouse.x + dx}px`;
+                this.pHoverInfo.style.top = `${currentMouse.y + dy}px`;
             }
             else
             {

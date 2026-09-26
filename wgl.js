@@ -169,7 +169,7 @@ function wgl_setBarData(timePeriods, yValues, periodTypes, periodDurationMinutes
 function wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinutes, startAtZero)
 {
     //cannot set line thickness, so have to manually create quads for each line segment
-    let numLines = yValues.length; //1 line for each y value to the next, with additional start point at 0,0
+    let numLines = yValues.length - (startAtZero ? 0 : 1); //1 line for each y value to the next
     numDataVerts = 6 * numLines; //4 verts per line segment
 
     let vertPositions = new Float32Array(numDataVerts * 2); //2 values (x,y) per vert
@@ -236,35 +236,40 @@ function wgl_setLineData(timePeriods, yValues, periodTypes, periodDurationMinute
 
     if (startAtZero)
     {
-        for (let i = 0; i < numLines; i++)
+        let x0 = 0;
+        let y0 = 0;
+        for (let i = 0; i < yValues.length; i++)
         {
-            const parts = timePeriods[i].split(":");
-            const time = parts[0] + parts[1].split(" - ")[0];
-            const x = timePeriodToXValue[time];
+            const parts = timePeriods[i].split(" - ")[1].split(":");
+            const time = parts[0] + parts[1]
+            
+            let x1 = timePeriodToXValue[time];
+            if (x1 == 0) x1 = 1440; //using end times, so 00:00 wants to be at end
+            const y1 = yValues[i];
 
-            let y1 = (i == 0) ? 0 : yValues[i - 1];
-            let y2 = yValues[i];
+            createLineSegment(i, periodTypes[i], x0, y0, x1, y1);
 
-            createLineSegment(i, periodTypes[i], x, y1, x + periodDurationMinutes, y2);
+            x0 = x1;
+            y0 = y1;
         }
     }
     else
     {
-        for (let i = 0; i < numLines - 1; i++)
+        let x0;
+        let y0;
+        for (let i = 0; i < yValues.length; i++)
         {
-            //plotting values which are at specific time point rather than period.
-            //they will have been measured at the end of the given period, so want to be
-            //plotted at the period's end time.
-            //the first value will be at the end of the first period of the day, since
-            //the time at the start of that period will be stored in the previous day's file.
             const parts = timePeriods[i].split(" - ")[1].split(":");
             const time = parts[0] + parts[1];
-            const x = timePeriodToXValue[time];
-
+            
+            let x1 = timePeriodToXValue[time];
+            if (x1 == 0) x1 = 1440;
             let y1 = yValues[i];
-            let y2 = yValues[i + 1];
 
-            createLineSegment(i, periodTypes[i], x, y1, x + periodDurationMinutes, y2);
+            if (i > 0) createLineSegment(i - 1, periodTypes[i], x0, y0, x1, y1);
+
+            x0 = x1;
+            y0 = y1;
         }
     }
 
