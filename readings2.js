@@ -377,18 +377,11 @@ async function onLogDateChanged()
     }
     else if (validFileDates.includes(inpDate.value))
     {
-        if (await loadNewFile(filename) == false)
-        {
-            showError("failed to read file: " + filename);
-            updateDownloadLink(filename);
-            forceHideGraph = true;
-            updateGraphVisibility();
-            graph.clear();
-        }
+        await loadNewFile(filename);
     }
     else
     {
-        showError(filename + " does not exist");
+        showError(filename + " is not in list of existing files");
         updateDownloadLink("");
         forceHideGraph = true;
         updateGraphVisibility();
@@ -402,8 +395,11 @@ async function loadNewFile(filename)
     if (!response.ok)
     {
         console.error(response);
-        showError("failed to load csv file: " + filename);
+        showError("failed to get csv file: " + filename);
         updateDownloadLink("");
+        forceHideGraph = true;
+        updateGraphVisibility();
+        graph.clear();
         return false;
     }
 
@@ -412,7 +408,15 @@ async function loadNewFile(filename)
 
     inpDate.value = filename.split(".")[0];
 
-    if (createDataFromCSV(text) == false) return false;
+    if (createDataFromCSV(text) == false)
+    {
+        showError("failed to parse csv, but it can still be downloaded");
+        updateDownloadLink(filename);
+        forceHideGraph = true;
+        updateGraphVisibility();
+        graph.clear();
+        return false;
+    }
 
     createGraphDataOptions();
     updateCosts(false);
@@ -427,14 +431,7 @@ async function reloadMostRecentFile()
     inpDate.value = validFileDates[0];
     let currentFile = validFileDates[0] + ".csv";
 
-    if (await loadNewFile(currentFile) == false)
-    {
-        showError("failed to read file: " + filename);
-        updateDownloadLink(filename);
-        forceHideGraph = true;
-        updateGraphVisibility();
-        graph.clear();
-    }
+    if (await loadNewFile(currentFile) == false) return;
 
     //set file to be automatically reloaded each minute
     //wait until 5 seconds past the minute to give time for file to be updated and saved
