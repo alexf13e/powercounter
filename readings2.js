@@ -63,10 +63,10 @@ const DTP_CUMULATIVE_KWH =      { yMin: 0,      yMax: 40,   decimalPlaces: 2,   
 const DTP_AVERAGE_KWH =         { yMin: 0,      yMax: 10,   decimalPlaces: 3,   unit: "kW",     graphType: GT_BAR               };
 const DTP_PERIOD_COST =         { yMin: 0,      yMax: 15,   decimalPlaces: 1,   unit: "p",      graphType: GT_BAR               };
 const DTP_CUMULATIVE_COST =     { yMin: 0,      yMax: 7,    decimalPlaces: 2,   unit: "£",      graphType: GT_LINE_CUMULATIVE   };
-const DTP_CUMULATIVE_NET_COST = { yMin: -1.5,   yMax: 7,    decimalPlaces: 2,   unit: "£",      graphType: GT_LINE_CUMULATIVE   };
+const DTP_CUMULATIVE_NET_COST = { yMin: -3,     yMax: 7,    decimalPlaces: 2,   unit: "£",      graphType: GT_LINE_CUMULATIVE   };
 const DTP_BATTERY =             { yMin: 0,      yMax: 110,  decimalPlaces: 2,   unit: "%",      graphType: GT_LINE_INSTANT      };
 const DTP_VOLTAGE =             { yMin: 200,    yMax: 270,  decimalPlaces: 1,   unit: "V",      graphType: GT_LINE_INSTANT      };
-const DTP_FREQUENCY =           { yMin: 45,     yMax: 55,   decimalPlaces: 1,   unit: "Hz",     graphType: GT_LINE_INSTANT      };
+const DTP_FREQUENCY =           { yMin: 49.5,   yMax: 50.5, decimalPlaces: 2,   unit: "Hz",     graphType: GT_LINE_INSTANT      };
 
 const DATA_TYPE_PROPERTIES = {};
 DATA_TYPE_PROPERTIES[STR_PERIOD_IMPORT_KWH] = DTP_PERIOD_KWH;

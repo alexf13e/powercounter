@@ -121,23 +121,28 @@ def record_values():
                 f.write(f"{log}\n")
 
 
-def get_seconds_until_next_record():
+def sleep_until_next_record():
     delta = timedelta(minutes=config.READING_INTERVAL_MINUTES)
     now = datetime.now()
 
     # make it so readings start on the nth minute, e.g. delta = 2 minutes, read at 0, 2, 4 etc.
     minute_floored = (now.minute // config.READING_INTERVAL_MINUTES) * config.READING_INTERVAL_MINUTES
-    now_floored = datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=minute_floored)
+    now_floored = datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=minute_floored, second=now.second)
 
     # record just after the minute to ensure at midnight the reading goes on the next day
-    next_record = (now_floored + delta).replace(microsecond=0, second=3)
-    return (next_record - now).seconds
+    next_record = (now_floored + delta).replace(microsecond=0, second=20)
+
+    not_slept_enough = True
+    while not_slept_enough:
+        time.sleep((next_record - now).seconds)
+        now = datetime.now()
+        not_slept_enough = now < next_record
 
 
 instrument = minimalmodbus.Instrument(config.MODBUS_DEVICE_PATH, config.MODBUS_SERVER_ADDRESS, minimalmodbus.MODE_RTU)
 instrument.serial.baudrate = config.MODBUS_BAUDRATE
 
-time.sleep(get_seconds_until_next_record())
+sleep_until_next_record()
 timeperiod_start = datetime.now()
 prev_today_import_kwh = get_today_import_kwh()
 prev_today_export_kwh = get_today_export_kwh()
@@ -147,7 +152,7 @@ prev_all_time_export_kwh = get_all_time_total_export_kwh()
 
 try:
     while True:
-        time.sleep(get_seconds_until_next_record())
+        sleep_until_next_record()
         record_values()
 except KeyboardInterrupt:
     print(" exiting...")
